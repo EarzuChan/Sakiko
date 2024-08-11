@@ -45,34 +45,6 @@ jobs:
       - name: RunNative
         if: "${{ matrix.cross  == 'linux-x64' }}"
         run: ./gradlew runCiTest
-  build-macos:
-    runs-on: macos-latest
-    name: Build on macOS
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup JDK 8
-        uses: actions/setup-java@v1
-        with:
-          java-version: 8
-      - name: Chmod scripts
-        run: |
-          chmod +x gradlew
-          chmod +x .scripts/build.sh
-          chmod +x .scripts/setup_docker.sh
-      - name: Build java
-        run: ./gradlew build
-      - name: Build native
-        run: .scripts/build.sh
-        env:
-          CROSS: MacOS
-      - name: Archive NativeLib artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: MacOS
-          path: |
-            native/cmake-build-release/bin
-      - name: RunNative
-        run: ./gradlew runCiTest
 
   build-jars:
     runs-on: ubuntu-latest
@@ -100,6 +72,7 @@ jobs:
           name: Jars
           path: |
             pack-release/build/libs
+
 
   upload-release-assets:
     runs-on: ubuntu-latest
