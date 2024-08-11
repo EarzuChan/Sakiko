@@ -5,15 +5,17 @@
 > 本项目Fork自`Karlatemp`的`JvmHookFramework`
 >
 > 原开发者说不适合在正式环境使用, 很慢（悲
+> 
+> 另外由于麻烦，暂时不提供macOS平台的本机库CI构建
 >
 > 本库的名字来自于`BanG Dream! It's MyGO!!!!!`中的丰川祥子
 
 ## 下载
 
-点击 [Actions](https://github.com/EarzuChan/Shoko/actions)
-点击最后一个成功运行的 Action
+点击 [Actions](https://github.com/EarzuChan/Sakiko/actions)
+点击最后一个成功运行的`Action`
 
-拖到最下面, 在 Artifacts 中点击 `Jars` 和 相应平台名字 (如 `windows-shared-x64`)
+拖到最下面, 在`Artifacts`中点击`Jars`和为相应平台构建的本机库（如 `windows-shared-x64`）
 
 ## 运行
 
@@ -30,7 +32,7 @@ NativeLib.zip
     `- libnative.dll / libnative.so         - native lib (native agent)
 ```
 
-你需要按照如下的格式修改你的 java 命令行来使用 JvmHookFramework
+你需要按照如下的格式修改你的Java命令行来使用Sakiko
 
 ```shell
 java -agentpath:/path/to/libnative.so -javaagent:/path/to/jvm-hook-framework-launcher.jar ...
@@ -38,12 +40,17 @@ java -agentpath:/path/to/libnative.so -javaagent:/path/to/jvm-hook-framework-lau
 java -agentpath:/path/to/libnative.so -javaagent:/path/to/jvm-hook-framework-launcher-obf.jar ...
 ```
 
-## 安装扩展
+## 克隆与构建
 
-在运行一次 java 命令之后, 一个名为 `jvm-hook-framework-extensions` 会在运行目录创建.
+注意克隆后如果再推送到你自己的新远程仓库，注意提交里要包含CMakelists.txt，不然CI构建会失败（悲
+
+## 安装扩展【旧扩展范式】
+
+第一次正确运行Java命令后, 会在运行目录创建一个名为`jvm-hook-framework-extensions`的文件夹
+
 把扩展放进这个文件夹里
 
-你也可以改成其他的位置. 只需要设置 环境变量 `JVM_HOOK_FRAMEWORK_EXTENSIONS`.
+想要把扩展放到其它的目录下？只需要把自定义文件夹路径设置为系统环境变量`JVM_HOOK_FRAMEWORK_EXTENSIONS`
 
 ```shell
 #!/usr/bin/env bash
@@ -52,12 +59,12 @@ JVM_HOOK_FRAMEWORK_EXTENSIONS=/path/to/other/dir
 java ....
 ```
 
-## 开发扩展【旧方式】
+## 开发扩展【旧扩展范式】
 
-将Api包添加为项目依赖
+新建一个生成Jar的Java库项目，并将Api包添加为项目依赖
 
-使用 `io.github.karlatemp.jvmhook.JvmHookFramework` 类注册挂钩
+将一个名为`jvm-hook-ext.txt`的文件放在Jar的根目录下，文件内容是您的扩展类的完整类名
 
-构建的 jar 里需要存在一个名为 `jvm-hook-ext.txt` 且内容为扩展主类的全名称 的文件
+在您的类中创建一个静态方法`load`，通过`io.github.karlatemp.jvmhook.JvmHookFramework`类的静态字段`INSTANCE`获取事先提供的的`JvmHookFramework实例`，这样就可以爽Hook了（喜
 
-示例: [TestExtension](testunit/src/main/java/teunit/ext/Ext.java)
+示例：[TestExtension](testunit/src/main/java/teunit/ext/Ext.java)
