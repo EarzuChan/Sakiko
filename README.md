@@ -1,4 +1,4 @@
-# 祥子 Shoko - 一款适用于JVM的Hook框架
+# 祥子 Sakiko - 一款适用于JVM的Hook框架
 
 > 注意
 >

@@ -1,6 +1,6 @@
 import java.nio.file.Files
 
-rootProject.name = 'Shoko'
+rootProject.name = 'Sakiko'
 def includeProject = { String name, String path ->
     include(name)
     project(name).projectDir = new File(rootDir, path)
