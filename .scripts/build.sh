@@ -1,5 +1,6 @@
 ls
 cd native
+ls
 mkdir cmake-build-release
 cd cmake-build-release
 rm -rf CMakeCache.txt
