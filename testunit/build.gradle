@@ -1,0 +1,15 @@
+plugins {
+    id 'java'
+}
+
+dependencies {
+    compileOnly project(':api')
+    implementation project(':testunit-inject')
+}
+
+(project(':pack-release').tasks.runCiTest as JavaExec).classpath = configurations.runtimeClasspath
+
+jar {
+    archiveBaseName.set('TestExt')
+    archiveVersion.set('0.0.0')
+}

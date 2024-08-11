@@ -1,0 +1,73 @@
+plugins {
+    id "com.github.johnrengelman.shadow" version "6.1.0" apply false
+    id 'io.github.karlatemp.publication-sign' version '1.1.0'
+}
+
+allprojects {
+    group 'io.github.karlatemp.jvm-hook-framework'
+    version '1.2.0'
+
+
+    repositories {
+        mavenCentral()
+    }
+
+    pluginManager.withPlugin('java') {
+        dependencies {
+            compileOnly group: 'org.jetbrains', name: 'annotations', version: '20.1.0'
+
+            testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+            testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
+        }
+
+        test {
+            useJUnitPlatform()
+        }
+        compileJava {
+            sourceCompatibility = JavaVersion.VERSION_1_8
+            targetCompatibility = JavaVersion.VERSION_1_8
+        }
+        compileTestJava {
+            sourceCompatibility = JavaVersion.VERSION_1_8
+            targetCompatibility = JavaVersion.VERSION_1_8
+        }
+    }
+}
+
+allprojects {
+    pluginManager.withPlugin('maven-publish') {
+        publishing {
+            repositories {
+                maven {
+                    setName("MavenCentral")
+                    // Maven Central
+                    setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2")
+
+                    credentials {
+                        def prop = { name ->
+                            if (rootProject.hasProperty(name)) {
+                                return rootProject.property(name)
+                            }
+                            return ""
+                        }
+                        username = prop('sonatype.user')
+                        password = prop('sonatype.key')
+                    }
+
+                    metadataSources.ignoreGradleMetadataRedirection()
+                }
+
+                mavenLocal {
+                    metadataSources.ignoreGradleMetadataRedirection()
+                }
+
+            }
+        }
+    }
+}
+
+publicationSign {
+    setupWorkflow { workflow ->
+        workflow.fastSetup("keys/key.pub", "keys/key.pri")
+    }
+}

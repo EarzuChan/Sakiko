@@ -1,0 +1,10 @@
+.gradle
+.idea
+*.log
+/native/cmake*
+build/
+*.class
+
+native-build/
+
+temp/

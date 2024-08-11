@@ -1,0 +1,118 @@
+plugins {
+    id 'java'
+    id "com.github.johnrengelman.shadow" apply false
+
+}
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+task packCore(type: ShadowJar) {
+    archiveBaseName.set('jvm-hook-framework')
+
+    configurations = [
+            project(':core').configurations.runtimeClasspath,
+            project(':extension').configurations.runtimeClasspath
+    ]
+    from project(':core').sourceSets.main.output
+    from project(':extension').sourceSets.main.output
+
+    archiveClassifier.set('core')
+}
+
+task packAll(type: Jar) {
+    archiveBaseName.set('jvm-hook-framework')
+
+    from sourceSets.main.output
+    dependsOn configurations.runtimeClasspath
+    archiveClassifier.set('launcher')
+
+    from(files(tasks.packCore.outputs)) { conf ->
+        conf.into('io/github/karlatemp/jvmhook/launcher')
+        conf.rename { 'classes.jar' }
+    }
+
+    manifest {
+        attributes([
+                'Premain-Class': 'io.github.karlatemp.jvmhook.launcher.Launcher'
+        ])
+    }
+}
+
+task copyApi(type: Copy) {
+    into(new File(buildDir, 'libs'))
+    from(project(':api').tasks.jar.outputs.files)
+}
+
+({
+    def pck = UUID.randomUUID().toString() + '.' + UUID.randomUUID().toString()
+
+    task randomObf_objSrc(type: ShadowJar) {
+        archiveBaseName.set('jvm-hook-framework')
+
+        from sourceSets.main.output
+        dependsOn configurations.runtimeClasspath
+        archiveClassifier.set('launcher')
+
+        manifest {
+            attributes([
+                    'Premain-Class': pck + '.Launcher'
+            ])
+        }
+
+        archiveClassifier.set('obf')
+        relocate 'io.github.karlatemp.jvmhook.launcher', pck
+    }
+
+    task randomObf(type: Jar) {
+        archiveBaseName.set('jvm-hook-framework')
+
+        from(zipTree(tasks.randomObf_objSrc.outputs.files.first()))
+        dependsOn tasks.randomObf_objSrc
+        archiveClassifier.set('launcher-obf')
+
+        from(files(tasks.packCore.outputs)) { conf ->
+            conf.into(pck.replace('.', '/'))
+            conf.rename { 'classes.jar' }
+        }
+
+        manifest {
+            attributes([
+                    'Premain-Class': pck + '.Launcher'
+            ])
+        }
+        exclude 'io/**'
+        exclude 'io'
+    }
+})();
+
+task runCiTest(type: JavaExec) {
+    dependsOn(tasks.packAll)
+    dependsOn(':testunit:jar')
+
+    def natives = rootProject.file('native/cmake-build-release').listFiles()
+    if (natives != null && natives.length != 0) {
+        def lib = natives.find {
+            it.isFile() && (
+                    it.name.endsWith('.so')
+                            || it.name.endsWith('.dll')
+                            || it.name.endsWith('.dylib')
+            )
+        }
+        if (lib != null) {
+            jvmArgs('-agentpath:' + lib)
+        }
+    }
+    jvmArgs('-javaagent:' + (tasks.packAll as Jar).archiveFile.get().asFile.path)
+    mainClass.set('tui.TestRun')
+    def extDir = new File(buildDir, 'citest-exts')
+    extDir.mkdirs()
+    environment('JVM_HOOK_FRAMEWORK_EXTENSIONS', extDir.toString())
+    doFirst {
+        copy {
+            from project(':testunit').tasks.jar
+            into extDir
+        }
+    }
+}
+
+// -agentpath:E:\IDEAProjects\JvmHookFramework\native\cmake-build-debug\libnative.dll

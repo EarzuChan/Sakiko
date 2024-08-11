@@ -1,0 +1,33 @@
+import java.nio.file.Files
+
+rootProject.name = 'Shoko'
+def includeProject = { String name, String path ->
+    include(name)
+    project(name).projectDir = new File(rootDir, path)
+}
+
+includeProject(":api", "api")
+includeProject(":core", "core")
+includeProject(":extension", "extension")
+includeProject(":testunit-inject", "testunit/run")
+includeProject(":testunit", "testunit")
+includeProject(":pack-release", "pack-release")
+
+
+include(':ci-release-helper')
+
+({
+    def exts = new File(rootDir, 'exts')
+    def extBuildTemplate = new File(exts, 'template.build.gradle')
+    for (def subproject : exts.listFiles()) {
+        if (subproject.isDirectory()) {
+            def subscript = new File(subproject, 'build.gradle')
+            if (!subscript.isFile()) {
+                Files.copy(extBuildTemplate.toPath(), subscript.toPath())
+            }
+            def projName = ':extension-' + subproject.name
+            include(projName)
+            project(projName).projectDir = subproject
+        }
+    }
+})()
