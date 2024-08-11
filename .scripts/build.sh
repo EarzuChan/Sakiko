@@ -1,6 +1,7 @@
-ls
 cd native
+echo "以下是Native目录下的文件"
 ls
+echo "开始构建本机库"
 mkdir cmake-build-release
 cd cmake-build-release
 rm -rf CMakeCache.txt
