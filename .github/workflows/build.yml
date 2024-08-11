@@ -47,7 +47,7 @@ jobs:
         run: ./gradlew runCiTest
   build-macos:
     runs-on: macos-latest
-    name: Build on MacOS
+    name: Build on macOS
     steps:
       - uses: actions/checkout@v2
       - name: Setup JDK 8

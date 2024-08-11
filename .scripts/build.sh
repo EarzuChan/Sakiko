@@ -1,3 +1,4 @@
+ls
 cd native
 mkdir cmake-build-release
 cd cmake-build-release

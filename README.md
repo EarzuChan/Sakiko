@@ -1,8 +1,12 @@
 # 祥子 Shoko - 一款适用于JVM的Hook框架
 
 > 注意
-> 本项目Fork自Karlatemp的JvmHookFramework
-> 不适合在正式环境使用, 很慢
+>
+> 本项目Fork自`Karlatemp`的`JvmHookFramework`
+>
+> 原开发者说不适合在正式环境使用, 很慢（悲
+>
+> 本库的名字来自于`BanG Dream! It's MyGO!!!!!`中的丰川祥子
 
 ## 下载
 
