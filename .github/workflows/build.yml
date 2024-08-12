@@ -60,9 +60,9 @@ jobs:
       - name: Build jars
         run: >
           ./gradlew
-          :pack-release:packAll
-          :pack-release:copyApi
-          :pack-release:randomObf
+          :pack-release-old:packAll
+          :pack-release-old:copyApi
+          :pack-release-old:randomObf
       - name: Archive Jar artifacts
         uses: actions/upload-artifact@v2
         with:

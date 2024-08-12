@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(native)
+project(sakiko)
 
 include_directories(includes/jni)
 include_directories(../core/build/generated/sources/headers/java/main)

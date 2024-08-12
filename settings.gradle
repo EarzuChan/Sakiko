@@ -1,20 +1,17 @@
 import java.nio.file.Files
 
 rootProject.name = 'Sakiko'
-def includeProject = { String name, String path ->
+
+def includeProject = { String path ->
+    def name = ":" + path
     include(name)
     project(name).projectDir = new File(rootDir, path)
 }
 
-includeProject(":api", "api")
-includeProject(":core", "core")
-includeProject(":extension", "extension")
-includeProject(":testunit-inject", "testunit/run")
-includeProject(":testunit", "testunit")
-includeProject(":pack-release", "pack-release")
-
-
-include(':ci-release-helper')
+includeProject("api-old")
+includeProject("core-old")
+includeProject("extension-old")
+includeProject("pack-release-old")
 
 ({
     def exts = new File(rootDir, 'exts')

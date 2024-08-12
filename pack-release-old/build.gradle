@@ -10,13 +10,13 @@ task packCore(type: ShadowJar) {
     archiveBaseName.set('jvm-hook-framework')
 
     configurations = [
-            project(':core').configurations.runtimeClasspath,
-            project(':extension').configurations.runtimeClasspath
+            project(':core-old').configurations.runtimeClasspath,
+            project(':extension-old').configurations.runtimeClasspath
     ]
-    from project(':core').sourceSets.main.output
-    from project(':extension').sourceSets.main.output
+    from project(':core-old').sourceSets.main.output
+    from project(':extension-old').sourceSets.main.output
 
-    archiveClassifier.set('core')
+    archiveClassifier.set('core-old')
 }
 
 task packAll(type: Jar) {
@@ -40,7 +40,7 @@ task packAll(type: Jar) {
 
 task copyApi(type: Copy) {
     into(new File(buildDir, 'libs'))
-    from(project(':api').tasks.jar.outputs.files)
+    from(project(':api-old').tasks.jar.outputs.files)
 }
 
 ({

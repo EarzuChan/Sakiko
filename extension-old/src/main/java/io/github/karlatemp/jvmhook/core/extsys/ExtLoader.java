@@ -23,7 +23,7 @@ public class ExtLoader {
             userset = true;
             exts = ENV;
         } else {
-            String property = System.getProperty("jvm-hook-framework-extensions");
+            String property = System.getProperty(exts);
             if (property != null) {
                 exts = property;
                 userset = true;
