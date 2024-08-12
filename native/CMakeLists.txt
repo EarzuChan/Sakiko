@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 project(sakiko)
 
 include_directories(includes/jni)
-include_directories(../core/build/generated/sources/headers/java/main)
+include_directories(../core-old/build/generated/sources/headers/java/main)
 
 IF (WIN32)
    include_directories(includes/jni/win32)
