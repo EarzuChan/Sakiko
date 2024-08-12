@@ -644,7 +644,7 @@ JNIEXPORT void JNICALL Java_io_github_karlatemp_jvmhook_core_Bootstrap_initializ
 
     if (jtiEnv == null) {
         env->GetJavaVM(&javaVm);
-        Agent_OnLoad(javaVm, null, null);
+        Agent_OnLoad(javaVm, null, null); // 加载Jvmti
     }
     jtiEnv->GetClassLoader(owner, &classLoaderX);
 

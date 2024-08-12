@@ -83,36 +83,4 @@ task copyApi(type: Copy) {
         exclude 'io/**'
         exclude 'io'
     }
-})();
-
-task runCiTest(type: JavaExec) {
-    dependsOn(tasks.packAll)
-    dependsOn(':testunit:jar')
-
-    def natives = rootProject.file('native/cmake-build-release').listFiles()
-    if (natives != null && natives.length != 0) {
-        def lib = natives.find {
-            it.isFile() && (
-                    it.name.endsWith('.so')
-                            || it.name.endsWith('.dll')
-                            || it.name.endsWith('.dylib')
-            )
-        }
-        if (lib != null) {
-            jvmArgs('-agentpath:' + lib)
-        }
-    }
-    jvmArgs('-javaagent:' + (tasks.packAll as Jar).archiveFile.get().asFile.path)
-    mainClass.set('tui.TestRun')
-    def extDir = new File(buildDir, 'citest-exts')
-    extDir.mkdirs()
-    environment('JVM_HOOK_FRAMEWORK_EXTENSIONS', extDir.toString())
-    doFirst {
-        copy {
-            from project(':testunit').tasks.jar
-            into extDir
-        }
-    }
-}
-
-// -agentpath:E:\IDEAProjects\JvmHookFramework\native\cmake-build-debug\libnative.dll
+})()

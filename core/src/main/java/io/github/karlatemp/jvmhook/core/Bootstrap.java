@@ -34,7 +34,7 @@ public class Bootstrap {
             MethodHandles.Lookup lk = MethodHandles.lookup();
             initLookupFieldOffset(lk, lk.lookupClass());
         }
-        initializeExts();
+        initializeExts(); // 加载扩展
     }
 
     private static native void initializeNative();

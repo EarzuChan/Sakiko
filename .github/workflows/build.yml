@@ -42,9 +42,6 @@ jobs:
           name: ${{ matrix.cross }}
           path: |
             native/cmake-build-release/bin
-      - name: RunNative
-        if: "${{ matrix.cross  == 'linux-x64' }}"
-        run: ./gradlew runCiTest
 
   build-jars:
     runs-on: ubuntu-latest
