@@ -23,23 +23,23 @@ tasks.register<Jar>("agentJar") {
 }
 
 tasks.register<JavaExec>("testLoader") {
-    dependsOn(":buildNativeOnMyPc")
+    // dependsOn(":buildNativeOnMyPc")
 
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("me.earzuchan.sakiko.loader.LoaderEntry")
 
     doFirst {
-        val nativeLibDir = file("${project.rootDir}/native-old/build")
-        val nativeLib = nativeLibDir.listFiles()?.firstOrNull { it.extension == "dll" || it.extension == "so" }
+        // val nativeLibDir = file("${project.rootDir}/native-old/build")
+        // val nativeLib = nativeLibDir.listFiles()?.firstOrNull { it.extension == "dll" || it.extension == "so" }
         val agentJar = tasks.named<Jar>("agentJar").get().archiveFile.get().asFile
 
-        if (nativeLib != null) {
-            println("找到本机库: ${nativeLib.absolutePath}")
-            val myArgs = arrayOf("-agentpath:${nativeLib.absolutePath}", "-javaagent:${agentJar.absolutePath}")
-            println("JVM参数: ${myArgs.joinToString { it }}")
-            jvmArgs(*myArgs)
-        } else {
+        /*if (nativeLib != null) {
+            println("找到本机库: ${nativeLib.absolutePath}")*/
+        val myArgs = arrayOf(/*"-agentpath:${nativeLib.absolutePath}",*/ "-javaagent:${agentJar.absolutePath}")
+        println("JVM参数: ${myArgs.joinToString { it }}")
+        jvmArgs(*myArgs)
+        /*} else {
             throw GradleException("没找到位于${nativeLibDir}的本机库")
-        }
+        }*/
     }
 }

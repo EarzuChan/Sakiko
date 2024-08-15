@@ -1,7 +1,6 @@
 package me.earzuchan.sakiko.core
 
 import me.earzuchan.sakiko.api.HookConfig
-import me.earzuchan.sakiko.api.HookContext
 import me.earzuchan.sakiko.api.SakikoBaseModule
 import me.earzuchan.sakiko.api.SakikoBridge
 import me.earzuchan.sakiko.core.util.Log
@@ -10,12 +9,12 @@ import java.lang.reflect.Method
 const val TAG = "SakikoCore"
 
 // Karlatemp圣千古
-object KarlatempNativeCompat {
-    external fun initNative(): Boolean
+object KarlatempCompat {
+    fun initNative(): Boolean = true
 }
 
 object Runner {
-    fun runModule(module: SakikoBaseModule) {
+    fun loadModule(module: SakikoBaseModule) {
         module.onHook()
     }
 
@@ -27,7 +26,7 @@ object Runner {
     }
 
     private fun ensureNative() {
-        if (!KarlatempNativeCompat.initNative()) {
+        if (!KarlatempCompat.initNative()) {
             throw UnsatisfiedLinkError("Native library status is not OK")
         }
 
@@ -35,6 +34,7 @@ object Runner {
     }
 
     private fun ensureBridge() {
+        // 通过反射设置INSTANCE以绕过Exception抛出
         SakikoBridge.INSTANCE = SakikoKarlatempBridge()
         Log.debug(TAG, "Bridge initialized")
     }
