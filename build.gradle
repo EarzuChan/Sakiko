@@ -38,6 +38,11 @@ task uploadReleaseAssets {
     doLast {
         def artifactsDir = file('temp/artifacts').absolutePath
         def version = project.version.toString()
+
+        if (ghToken == null || postUrl == null) {
+            throw new IllegalStateException("GH_TOKEN or POST_URL is not set.")
+        }
+
         def postUrlFormatted = postUrl.replaceAll("\\{.*\\}", "")
 
         println "Post url: ${postUrlFormatted}"
