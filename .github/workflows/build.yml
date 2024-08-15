@@ -67,7 +67,7 @@ jobs:
         with:
           name: Jars
           path: |
-            launcher/build/libs
+            launcher-old/build/libs
 
 
   upload-release-assets:
