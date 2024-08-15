@@ -21,6 +21,8 @@ task packCore(type: ShadowJar) {
 }
 
 task packAll(type: Jar) {
+    dependsOn 'launcher-old:copyApi'
+
     archiveBaseName.set('jvm-hook-framework')
 
     from sourceSets.main.output
