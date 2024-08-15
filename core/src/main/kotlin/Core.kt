@@ -1,12 +1,18 @@
 package me.earzuchan.sakiko.core
 
 import me.earzuchan.sakiko.api.HookConfig
+import me.earzuchan.sakiko.api.HookContext
 import me.earzuchan.sakiko.api.SakikoBaseModule
 import me.earzuchan.sakiko.api.SakikoBridge
 import me.earzuchan.sakiko.core.util.Log
 import java.lang.reflect.Method
 
 const val TAG = "SakikoCore"
+
+// Karlatemp圣千古
+object KarlatempNativeCompat {
+    external fun initNative(): Boolean
+}
 
 object Runner {
     fun runModule(module: SakikoBaseModule) {
@@ -20,10 +26,8 @@ object Runner {
         ensureBridge()
     }
 
-    private external fun helloMamba(): Boolean
-
     private fun ensureNative() {
-        if (!helloMamba()) {
+        if (!KarlatempNativeCompat.initNative()) {
             throw UnsatisfiedLinkError("Native library status is not OK")
         }
 
@@ -31,12 +35,12 @@ object Runner {
     }
 
     private fun ensureBridge() {
-        SakikoBridge.INSTANCE = SakikoBridgeImpl()
+        SakikoBridge.INSTANCE = SakikoKarlatempBridge()
         Log.debug(TAG, "Bridge initialized")
     }
 }
 
-public class SakikoBridgeImpl : SakikoBridge() {
+public class SakikoKarlatempBridge : SakikoBridge() {
     override fun hook(method: Method, config: HookConfig) {
         Log.debug(TAG, "Hook ${method.name}")
     }

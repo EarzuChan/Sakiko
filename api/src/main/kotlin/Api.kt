@@ -39,14 +39,18 @@ class UnhookConfig(private val method: Method) {
 }
 
 class HookConfig {
-    var before: (() -> Unit)? = null
-    var after: (() -> Unit)? = null
+    var beforeLambda: (HookContext.() -> Unit)? = null
+    var afterLambda: (HookContext.() -> Unit)? = null
 
-    fun before(action: () -> Unit) {
-        before = action
+    fun before(action: HookContext.() -> Unit) {
+        beforeLambda = action
     }
 
-    fun after(action: () -> Unit) {
-        after = action
+    fun after(action: HookContext.() -> Unit) {
+        afterLambda = action
     }
+}
+
+class HookContext(val args: Array<Any?>) {
+
 }

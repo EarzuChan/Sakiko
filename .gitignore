@@ -1,7 +1,7 @@
 .gradle
 .idea
 *.log
-/native/cmake*
+/native-old/cmake*
 build/
 *.class
 
@@ -9,4 +9,4 @@ native-build/
 
 temp/
 .vscode
-/native/build
+/native-old/build

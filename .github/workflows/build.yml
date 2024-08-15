@@ -32,7 +32,7 @@ jobs:
           chmod +x .scripts/setup_docker.sh
       - name: 为 ${{ matrix.cross }} 注册米哈游通行证
         run: ./gradlew build
-      - name: Build native (${{ matrix.cross }})
+      - name: 是 (${{ matrix.cross }}) 成为米孝子的第一天捏
         run: .scripts/setup_docker.sh
         env:
           CROSS: ${{ matrix.cross }}
@@ -41,7 +41,7 @@ jobs:
         with:
           name: ${{ matrix.cross }}
           path: |
-            native/cmake-build-release/bin
+            native-old/build/bin
 
   build-jars:
     runs-on: ubuntu-latest

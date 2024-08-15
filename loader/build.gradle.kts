@@ -29,7 +29,7 @@ tasks.register<JavaExec>("testLoader") {
     mainClass.set("me.earzuchan.sakiko.loader.LoaderEntry")
 
     doFirst {
-        val nativeLibDir = file("${project.rootDir}/native/cmake-build-release")
+        val nativeLibDir = file("${project.rootDir}/native-old/build")
         val nativeLib = nativeLibDir.listFiles()?.firstOrNull { it.extension == "dll" || it.extension == "so" }
         val agentJar = tasks.named<Jar>("agentJar").get().archiveFile.get().asFile
 

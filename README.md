@@ -34,12 +34,12 @@ Sakiko是一款跨平台的JavaHook方案，旨在提供更灵活的JVM内部Hoo
     - `sakiko-old-0.11.4.514-core.jar` - **旧版**运行时Java库
         - `sakiko-old-0.11.4.514-launcher.jar` - **旧版**启动器包（Java Agent）
 - **平台-架构.zip**：
-    - `libnative.dll` / `libnative.so` - 本机库
+    - `libsakiko.dll` / `libsakiko.so` - 本机库
 
 使用Sakiko，您需要修改Java命令行，格式如下：
 
 ```shell
-java -agentpath:/path/to/libnative.so -javaagent:/path/to/sakiko-old-0.11.4.514-launcher.jar ...
+java -agentpath:/path/to/libsakiko.so -javaagent:/path/to/sakiko-old-0.11.4.514-launcher.jar ...
 ```
 
 ## 克隆与构建

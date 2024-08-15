@@ -1,13 +1,13 @@
-cd native
+cd native-old
 
-rm -rf cmake-build-release
-mkdir cmake-build-release
-cd cmake-build-release
+rm -rf build
+mkdir build
+cd build
 
 echo "开始配置构建"
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CACHEFILE_DIR=$PWD -Dcross_triple=$CROSS ..
 echo "开始构建本机库"
-cmake --build . --target native -- -j 3
+cmake --build . --target sakiko -- -j 3
 
 ecode=$?
 
