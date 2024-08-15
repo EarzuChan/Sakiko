@@ -62,7 +62,6 @@ jobs:
           ./gradlew
           :launcher-old:packAll
           :launcher-old:copyApi
-          :launcher-old:randomObf
       - name: 群友们已经加载好了启动页动画
         uses: actions/upload-artifact@v2
         with:

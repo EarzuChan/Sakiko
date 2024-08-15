@@ -46,53 +46,20 @@ task copyApi(type: Copy) {
     from(project(':api-old').tasks.jar.outputs.files)
 }
 
-({
-    def pck = UUID.randomUUID().toString() + '.' + UUID.randomUUID().toString()
-
-    task randomObf_objSrc(type: ShadowJar) {
-        archiveBaseName.set('jvm-hook-framework')
-
-        from sourceSets.main.output
-        dependsOn configurations.runtimeClasspath
-        archiveClassifier.set('launcher')
-
-        manifest {
-            attributes([
-                    'Premain-Class': pck + '.Launcher'
-            ])
-        }
-
-        archiveClassifier.set('obf')
-        relocate 'io.github.karlatemp.jvmhook.launcher', pck
-    }
-
-    task randomObf(type: Jar) {
-        archiveBaseName.set('jvm-hook-framework')
-
-        from(zipTree(tasks.randomObf_objSrc.outputs.files.first()))
-        dependsOn tasks.randomObf_objSrc
-        archiveClassifier.set('launcher-obf')
-
-        from(files(tasks.packCore.outputs)) { conf ->
-            conf.into(pck.replace('.', '/'))
-            conf.rename { 'classes.jar' }
-        }
-
-        manifest {
-            attributes([
-                    'Premain-Class': pck + '.Launcher'
-            ])
-        }
-        exclude 'io/**'
-        exclude 'io'
-    }
-})()
 repositories {
     mavenCentral()
 }
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
 kotlin {
     jvmToolchain(21)
 }
