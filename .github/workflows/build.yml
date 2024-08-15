@@ -89,7 +89,7 @@ jobs:
         with:
           path: temp/artifacts
       - name: 原神！启动！
-        run: ./gradlew :ci-release-helper:uploadReleaseAssets
+        run: ./gradlew :uploadReleaseAssets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           POST_URL: ${{ github.event.release.upload_url }}

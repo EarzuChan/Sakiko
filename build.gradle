@@ -30,12 +30,73 @@ allprojects {
         }
     }
 }
+
+task uploadReleaseAssets {
+    def ghToken = System.getenv("GH_TOKEN")
+    def postUrl = System.getenv("POST_URL")
+
+    doLast {
+        def artifactsDir = file('temp/artifacts').absolutePath
+        def version = project.version.toString()
+        def postUrlFormatted = postUrl.replaceAll("\\{.*\\}", "")
+
+        println "Post url: ${postUrlFormatted}"
+
+        def prefix = "SaKiKo-"
+        def files = [:]
+
+        file(artifactsDir).listFiles().each { dir ->
+            if (dir.name.equalsIgnoreCase("Jars")) {
+                dir.listFiles().each { f ->
+                    files.put(f.name, f)
+                }
+            } else {
+                dir.listFiles().each { f ->
+                    def name = "${prefix}${dir.name}-${version}.${f.name.split("\\.").last()}"
+                    files.put(name, f)
+                }
+            }
+        }
+
+        byte[] buf = new byte[20480]
+
+        files.each { fileName, file ->
+            def url = new URL("${postUrlFormatted}?name=${URLEncoder.encode(fileName, 'UTF-8')}")
+            def connection = (HttpURLConnection) url.openConnection()
+            connection.setRequestMethod("POST")
+            connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
+            connection.setRequestProperty("Content-Length", file.length().toString())
+            connection.setRequestProperty("Content-Type", "application/zip")
+            connection.setRequestProperty("Authorization", "token ${ghToken}")
+            connection.setDoOutput(true)
+
+            file.withInputStream { input ->
+                connection.outputStream.with { output ->
+                    output << input
+                    output.flush()
+                }
+            }
+
+            if (connection.responseCode != 201) {
+                def errorStream = connection.errorStream ?: connection.inputStream
+                def errorMsg = errorStream.getText("UTF-8")
+                throw new IOException(errorMsg)
+            }
+
+            println "Uploaded ${fileName} successfully."
+        }
+    }
+}
+
+
 repositories {
     mavenCentral()
 }
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
+
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(21)
 }
