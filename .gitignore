@@ -2,11 +2,11 @@
 .idea
 *.log
 /native/cmake*
-.vscode
 build/
 *.class
 
 native-build/
 
 temp/
-/native/.vscode/
+.vscode
+/native/build
