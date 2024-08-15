@@ -16,9 +16,9 @@ import java.util.zip.ZipFile;
 
 public class ExtLoader {
     public static void load() throws Throwable {
-        String exts = "jvm-hook-framework-extensions";
+        String exts = "sakiko-modules";
         boolean userset = false;
-        String ENV = System.getenv("JVM_HOOK_FRAMEWORK_EXTENSIONS");
+        String ENV = System.getenv("SAKIKO_MODULES");
         if (ENV != null) {
             userset = true;
             exts = ENV;
@@ -60,7 +60,7 @@ public class ExtLoader {
         NativeBridge.setExtClassLoader(ucl);
         for (File jar : jars) {
             try (ZipFile zip = new ZipFile(jar)) {
-                ZipEntry entry = zip.getEntry("jvm-hook-ext.txt");
+                ZipEntry entry = zip.getEntry("module_entries");
                 if (entry == null) continue;
                 try (BufferedReader br = new BufferedReader(new InputStreamReader(
                         zip.getInputStream(entry), StandardCharsets.UTF_8

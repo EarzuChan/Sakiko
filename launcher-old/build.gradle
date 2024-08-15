@@ -17,7 +17,7 @@ task packCore(type: ShadowJar) {
     from project(':core-old').sourceSets.main.output
     from project(':extension-old').sourceSets.main.output
 
-    archiveClassifier.set('core-old')
+    archiveClassifier.set('core')
 }
 
 task packAll(type: Jar) {
