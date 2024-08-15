@@ -74,7 +74,6 @@ jobs:
     runs-on: ubuntu-latest
     name: 最后的伟大启动
     needs: [ build-jars, build]
-    if: "${{ github.event_name == 'release' }}"
     steps:
       - uses: actions/checkout@v2
       - name: 启动页动画的大门已经加载好了
