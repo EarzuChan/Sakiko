@@ -1,6 +1,4 @@
 plugins {
-    id("java")
-    id("java-library")
     kotlin("jvm")
 }
 dependencies {
@@ -12,4 +10,7 @@ repositories {
 }
 kotlin {
     jvmToolchain(21)
+}
+tasks.jar {
+    archiveClassifier.set("api")
 }

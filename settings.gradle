@@ -3,10 +3,10 @@ pluginManagement {
         id 'org.jetbrains.kotlin.jvm' version '2.0.10'
     }
 }
+
 plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
 }
-import java.nio.file.Files
 
 rootProject.name = 'Sakiko'
 
@@ -20,5 +20,8 @@ includeProject("api-old")
 includeProject("core-old")
 includeProject("extension-old")
 includeProject("launcher-old")
-include 'spi'
+include 'api'
+include 'loader'
+include 'test'
+include 'core'
 

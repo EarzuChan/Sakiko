@@ -52,6 +52,7 @@ repositories {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    compileOnly group: 'org.jetbrains', name: 'annotations', version: '20.1.0'
 }
 
 java {

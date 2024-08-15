@@ -13,20 +13,9 @@ allprojects {
         mavenCentral()
     }
 
-    pluginManager.withPlugin('java') {
-        dependencies {
-            compileOnly group: 'org.jetbrains', name: 'annotations', version: '20.1.0'
-
-            testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
-            testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
-        }
-
-        test {
-            useJUnitPlatform()
-        }
-        compileJava {
-        }
-        compileTestJava {
+    tasks.withType(Jar).tap {
+        configureEach {
+            archiveBaseName.set("sakiko")
         }
     }
 }
@@ -66,7 +55,7 @@ task uploadReleaseAssets {
         byte[] buf = new byte[20480]
 
         files.each { fileName, file ->
-            def url = new URL("${postUrlFormatted}?name=${URLEncoder.encode(fileName, 'UTF-8')}")
+            def url = new URL("${postUrlFormatted}?name=${URLEncoder.encode(fileName as String, 'UTF-8')}")
             def connection = (HttpURLConnection) url.openConnection()
             connection.setRequestMethod("POST")
             connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
@@ -93,6 +82,9 @@ task uploadReleaseAssets {
     }
 }
 
+task buildNativeOnMyPc(type: Exec) {
+    commandLine 'C:\\Program Files\\Git\\bin\\bash.exe', '.scripts\\build_on_win.sh'
+}
 
 repositories {
     mavenCentral()

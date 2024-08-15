@@ -109,7 +109,6 @@ hook-module:
 开发新版本模块需要使用Kotlin语言，以下是一个示例代码片段：
 
 ```kotlin
-@SakikoHookModule
 class MambaModule(hookContext: HookContext) : SakikoBaseModule(hookContext) {
     init { // 初始化
         SakikoHookAPI.configs { // 配置

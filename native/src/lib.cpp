@@ -730,9 +730,7 @@ JNIEXPORT void JNICALL Java_io_github_karlatemp_jvmhook_core_Bootstrap_registerH
     registerHook(env, k, met, hook);
 }
 
-JNIEXPORT void JNICALL Java_io_github_karlatemp_jvmhook_core_Bootstrap_unregisterHook0(
-        JNIEnv *env, jclass, jobject method, jobject hook
-) {
+JNIEXPORT void JNICALL Java_io_github_karlatemp_jvmhook_core_Bootstrap_unregisterHook0(        JNIEnv *env, jclass, jobject method, jobject hook) {
     jclass k;
     jmethodID met = env->FromReflectedMethod(method);
     jtiEnv->GetMethodDeclaringClass(met, &k);
@@ -749,8 +747,7 @@ jmethodID findMetOfHook(JNIEnv *env, jclass target, jstring metName, jstring met
     return mx;
 }
 
-JNIEXPORT void JNICALL Java_io_github_karlatemp_jvmhook_core_Bootstrap_registerHook
-        (JNIEnv *env, jclass, jclass target, jstring metName, jstring metDesc, jobject hook) {
+JNIEXPORT void JNICALL Java_io_github_karlatemp_jvmhook_core_Bootstrap_registerHook        (JNIEnv *env, jclass, jclass target, jstring metName, jstring metDesc, jobject hook) {
     auto m = findMetOfHook(env, target, metName, metDesc);
     if (m == null)return;
     registerHook(env, target, m, hook);
@@ -768,4 +765,9 @@ JNIEXPORT void JNICALL Java_io_github_karlatemp_jvmhook_core_Bootstrap_unregiste
     if (m == null)return;
     unregisterHook(env, target, m, hook);
 }
+
+extern  "C" JNIEXPORT jboolean JNICALL Java_me_earzuchan_sakiko_core_Runner_helloMamba(JNIEnv *, jclass) {
+    return JNI_TRUE;
+}
+
 // endregion
