@@ -32,15 +32,15 @@ allprojects {
 }
 
 task uploadReleaseAssets {
-    def ghToken = System.getenv("GH_TOKEN")
-    def postUrl = System.getenv("POST_URL")
+    def ghToken = project.findProperty("ghToken") ?: "defaultToken"
+    def postUrl = project.findProperty("postUrl") ?: "defaultUrl"
 
     doLast {
         def artifactsDir = file('temp/artifacts').absolutePath
         def version = project.version.toString()
 
-        if (ghToken == null || postUrl == null) {
-            throw new IllegalStateException("GH_TOKEN or POST_URL is not set.")
+        if (ghToken.isBlank() || postUrl.isBlank()) {
+            throw new IllegalArgumentException("GH_TOKEN or POST_URL is not set.")
         }
 
         def postUrlFormatted = postUrl.replaceAll("\\{.*\\}", "")
