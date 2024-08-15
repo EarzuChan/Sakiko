@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id "com.github.johnrengelman.shadow" apply false
+    id 'org.jetbrains.kotlin.jvm'
 
 }
 
@@ -84,3 +85,12 @@ task copyApi(type: Copy) {
         exclude 'io'
     }
 })()
+repositories {
+    mavenCentral()
+}
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+}
+kotlin {
+    jvmToolchain(21)
+}

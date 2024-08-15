@@ -1,6 +1,7 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "6.1.0" apply false
     id 'io.github.karlatemp.publication-sign' version '1.1.0'
+    id 'org.jetbrains.kotlin.jvm'
 }
 
 allprojects {
@@ -24,50 +25,17 @@ allprojects {
             useJUnitPlatform()
         }
         compileJava {
-            sourceCompatibility = JavaVersion.VERSION_1_8
-            targetCompatibility = JavaVersion.VERSION_1_8
         }
         compileTestJava {
-            sourceCompatibility = JavaVersion.VERSION_1_8
-            targetCompatibility = JavaVersion.VERSION_1_8
         }
     }
 }
-
-allprojects {
-    pluginManager.withPlugin('maven-publish') {
-        publishing {
-            repositories {
-                maven {
-                    setName("MavenCentral")
-                    // Maven Central
-                    setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2")
-
-                    credentials {
-                        def prop = { name ->
-                            if (rootProject.hasProperty(name)) {
-                                return rootProject.property(name)
-                            }
-                            return ""
-                        }
-                        username = prop('sonatype.user')
-                        password = prop('sonatype.key')
-                    }
-
-                    metadataSources.ignoreGradleMetadataRedirection()
-                }
-
-                mavenLocal {
-                    metadataSources.ignoreGradleMetadataRedirection()
-                }
-
-            }
-        }
-    }
+repositories {
+    mavenCentral()
 }
-
-publicationSign {
-    setupWorkflow { workflow ->
-        workflow.fastSetup("keys/key.pub", "keys/key.pri")
-    }
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+}
+kotlin {
+    jvmToolchain(8)
 }

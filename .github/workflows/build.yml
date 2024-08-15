@@ -6,12 +6,12 @@ on:
     types:
       - created
 
-name: Build CI
+name: 原神？启动！
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Build on ${{ matrix.cross }}
+    name: 给 ${{ matrix.cross }} 安装原神
     strategy:
       matrix:
         cross:
@@ -21,22 +21,22 @@ jobs:
           - windows-shared-x64
     steps:
       - uses: actions/checkout@v2
-      - name: Setup JDK 8
+      - name: 为 ${{ matrix.cross }} 下载原神
         uses: actions/setup-java@v1
         with:
-          java-version: 8
-      - name: Chmod scripts
+          java-version: 21
+      - name: 为 ${{ matrix.cross }} 安装原神
         run: |
           chmod +x gradlew
           chmod +x .scripts/build.sh
           chmod +x .scripts/setup_docker.sh
-      - name: Build java
+      - name: 为 ${{ matrix.cross }} 注册米哈游通行证
         run: ./gradlew build
       - name: Build native (${{ matrix.cross }})
         run: .scripts/setup_docker.sh
         env:
           CROSS: ${{ matrix.cross }}
-      - name: Archive NativeLib artifacts
+      - name: 为 ${{ matrix.cross }} 打开原神
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.cross }}
@@ -45,25 +45,25 @@ jobs:
 
   build-jars:
     runs-on: ubuntu-latest
-    name: Upload jars
+    name: 一键打开所有群友的原神
     steps:
       - uses: actions/checkout@v2
-      - name: Setup JDK 8
+      - name: 打开群友们的原神
         uses: actions/setup-java@v1
         with:
-          java-version: 8
-      - name: Chmod scripts
+          java-version: 21
+      - name: 给群友们登录米哈游通行证
         run: |
           chmod +x gradlew
-      - name: Clean caches
+      - name: 群友们点击进入原神
         run: ./gradlew clean
-      - name: Build jars
+      - name: 群友们正在加载原神服务器配置
         run: >
           ./gradlew
-          :pack-release-old:packAll
-          :pack-release-old:copyApi
-          :pack-release-old:randomObf
-      - name: Archive Jar artifacts
+          :launcher-old:packAll
+          :launcher-old:copyApi
+          :launcher-old:randomObf
+      - name: 群友们已经加载好了启动页动画
         uses: actions/upload-artifact@v2
         with:
           name: Jars
@@ -73,15 +73,16 @@ jobs:
 
   upload-release-assets:
     runs-on: ubuntu-latest
+    name: 最后的伟大启动
     needs: [ build-jars, build]
     if: "${{ github.event_name == 'release' }}"
     steps:
       - uses: actions/checkout@v2
-      - name: Setup JDK 8
+      - name: 启动页动画的大门已经加载好了
         uses: actions/setup-java@v1
         with:
-          java-version: 8
-      - name: pre setup
+          java-version: 21
+      - name: 按捺不住激动的心而一举点下
         run: |
           chmod +x gradlew
           mkdir temp
@@ -89,7 +90,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           path: temp/artifacts
-      - name: Do Upload
+      - name: 原神！启动！
         run: ./gradlew :ci-release-helper:uploadReleaseAssets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

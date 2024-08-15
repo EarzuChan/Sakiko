@@ -1,3 +1,11 @@
+pluginManagement {
+    plugins {
+        id 'org.jetbrains.kotlin.jvm' version '2.0.10'
+    }
+}
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+}
 import java.nio.file.Files
 
 rootProject.name = 'Sakiko'
@@ -11,20 +19,6 @@ def includeProject = { String path ->
 includeProject("api-old")
 includeProject("core-old")
 includeProject("extension-old")
-includeProject("pack-release-old")
+includeProject("launcher-old")
+include 'spi'
 
-({
-    def exts = new File(rootDir, 'exts')
-    def extBuildTemplate = new File(exts, 'template.build.gradle')
-    for (def subproject : exts.listFiles()) {
-        if (subproject.isDirectory()) {
-            def subscript = new File(subproject, 'build.gradle')
-            if (!subscript.isFile()) {
-                Files.copy(extBuildTemplate.toPath(), subscript.toPath())
-            }
-            def projName = ':extension-' + subproject.name
-            include(projName)
-            project(projName).projectDir = subproject
-        }
-    }
-})()
