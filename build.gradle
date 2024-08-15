@@ -32,8 +32,8 @@ allprojects {
 }
 
 task uploadReleaseAssets {
-    def ghToken = project.findProperty("ghToken") ?: "defaultToken"
-    def postUrl = project.findProperty("postUrl") ?: "defaultUrl"
+    def ghToken = project.findProperty("ghToken") ?: ""
+    def postUrl = project.findProperty("postUrl") ?: ""
 
     doLast {
         def artifactsDir = file('temp/artifacts').absolutePath

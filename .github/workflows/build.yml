@@ -67,12 +67,13 @@ jobs:
         with:
           name: Jars
           path: |
-            pack-release/build/libs
+            launcher/build/libs
 
 
   upload-release-assets:
     runs-on: ubuntu-latest
     name: 最后的伟大启动
+    if: github.event_name == 'release'
     needs: [ build-jars, build]
     steps:
       - uses: actions/checkout@v2

@@ -8,7 +8,7 @@ plugins {
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 task packCore(type: ShadowJar) {
-    archiveBaseName.set('jvm-hook-framework')
+    archiveBaseName.set('sakiko-old')
 
     configurations = [
             project(':core-old').configurations.runtimeClasspath,
@@ -23,7 +23,7 @@ task packCore(type: ShadowJar) {
 task packAll(type: Jar) {
     dependsOn ':launcher-old:copyApi'
 
-    archiveBaseName.set('jvm-hook-framework')
+    archiveBaseName.set('sakiko-old')
 
     from sourceSets.main.output
     dependsOn configurations.runtimeClasspath
