@@ -3,42 +3,65 @@ package me.earzuchan.sakiko.api.reflecting
 import me.earzuchan.sakiko.api.HookConfig
 import me.earzuchan.sakiko.api.UnhookConfig
 import me.earzuchan.sakiko.api.hook
+import java.lang.reflect.Constructor
+import java.lang.reflect.Executable
 import java.lang.reflect.Method
 
-fun Class<*>.method(configure: MethodMatchConfig.() -> Unit): MethodMatches {
-    val config = MethodMatchConfig().apply(configure)
+fun Class<*>.method(configure: ExecutableMatchConfig.() -> Unit = {}): ExecutableMatches<Method> {
+    val config = ExecutableMatchConfig().apply(configure)
     val methods = this.declaredMethods.filter { it.name == config.name }
 
     return if (config.paramsHasSet) {
         // 方法类型匹配
-        MethodMatches(methods.filter { it.parameterTypes.contentEquals(config.params.toTypedArray()) })
+        ExecutableMatches(methods.filter { it.parameterTypes.contentEquals(config.params.toTypedArray()) })
     } else {
-        MethodMatches(methods)
+        ExecutableMatches(methods)
     }
 }
 
-// 方法匹配器
-class MethodMatches(private val methods: List<Method>) {
+fun Class<*>.constructor(configure: ExecutableMatchConfig.() -> Unit = {}): ExecutableMatches<Constructor<*>> {
+    val config = ExecutableMatchConfig().apply(configure)
+    val constructors = this.declaredConstructors
+
+    return if (config.paramsHasSet) {
+        // 构造器类型匹配
+        ExecutableMatches(constructors.filter { it.parameterTypes.contentEquals(config.params.toTypedArray()) })
+    } else {
+        ExecutableMatches(constructors.toList())
+    }
+}
+
+// 可执行匹配集
+class ExecutableMatches<T : Executable>(private val executables: List<T>) {
     // 选择仅一个方法
     fun hook(configure: HookConfig.() -> Unit): UnhookConfig {
-        if (methods.size == 1) {
-            return methods[0].hook(configure)
+        if (executables.size == 1) {
+            return executables[0].hook(configure)
         } else {
             throw IllegalStateException("Multiple methods found. Use all() to select specific methods.")
         }
     }
 
     // 选择所有方法
-    fun all(): List<Method> {
-        return methods
+    fun all(): List<Executable> {
+        return executables
     }
+
+    val it: T
+        get() {
+            if (executables.size == 1) {
+                return executables[0]
+            } else {
+                throw IllegalStateException("Multiple methods found. Use all() to select specific methods.")
+            }
+        }
 }
 
 // 批量 hook
-fun List<Method>.hook(configure: HookConfig.() -> Unit): List<UnhookConfig> = map { it.hook(configure) }
+fun List<Executable>.hook(configure: HookConfig.() -> Unit): List<UnhookConfig> = map { it.hook(configure) }
 
-// 方法匹配配置
-class MethodMatchConfig {
+// 可执行匹配配置
+class ExecutableMatchConfig {
     lateinit var name: String
     val params = mutableListOf<Class<*>>()
     var paramsHasSet = false

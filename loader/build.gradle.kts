@@ -43,3 +43,11 @@ tasks.register<JavaExec>("testLoader") {
         }*/
     }
 }
+
+sourceSets {
+    main {
+        kotlin {
+            srcDirs("src/main/codes")
+        }
+    }
+}

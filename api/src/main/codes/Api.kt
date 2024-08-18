@@ -1,27 +1,36 @@
 package me.earzuchan.sakiko.api
 
-import java.lang.reflect.Method
+import java.lang.reflect.Executable
 
-const val 文本 = "度尽劫波兄弟在，相逢一笑泯恩仇"
+object SakikoAPI {
+    const val VERSION = me.earzuchan.sakiko.api.VERSION
 
-inline fun NIL(): Nothing = throw NullPointerException(文本)
-
-public abstract class SakikoBridge {
-    abstract fun hook(method: Method, config: HookConfig)
-
-    abstract fun unhook(method: Method)
-
-    companion object {
-        @JvmStatic
-        var INSTANCE: SakikoBridge = NIL()
+    object Config {
     }
 }
 
-public abstract class SakikoBaseModule {
-    abstract fun onHook()
+public class ApiConfig {
 }
 
-fun Method.hook(configure: HookConfig.() -> Unit): UnhookConfig {
+public abstract class SakikoBridge {
+    abstract fun hook(executable: Executable, config: HookConfig)
+
+    abstract fun unhook(executable: Executable)
+
+    companion object {
+        @JvmStatic
+        lateinit var INSTANCE: SakikoBridge
+    }
+}
+
+public abstract class SakikoModule(val moduleContext: ModuleContext) {
+    abstract fun onHook()
+
+    public class ModuleContext {
+    }
+}
+
+fun Executable.hook(configure: HookConfig.() -> Unit): UnhookConfig {
     val config = HookConfig().apply(configure)
 
     SakikoBridge.INSTANCE.hook(this, config)
@@ -29,10 +38,8 @@ fun Method.hook(configure: HookConfig.() -> Unit): UnhookConfig {
     return UnhookConfig(this)
 }
 
-class UnhookConfig(private val method: Method) {
-    fun unhook() {
-        SakikoBridge.INSTANCE.unhook(method)
-    }
+class UnhookConfig(private val executable: Executable) {
+    fun unhook() = SakikoBridge.INSTANCE.unhook(executable)
 }
 
 class HookConfig {

@@ -10,3 +10,5 @@ native-build/
 temp/
 .vscode
 /native-old/build
+/.kotlin/
+/api/src/main/generated/

@@ -7,12 +7,22 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
+    api(project(":api"))
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
 kotlin {
     jvmToolchain(21)
+}
+
+sourceSets {
+    main {
+        kotlin {
+            srcDirs("src/main/codes")
+        }
+    }
+    test {
+        kotlin {
+            srcDirs("src/test/codes")
+        }
+    }
 }

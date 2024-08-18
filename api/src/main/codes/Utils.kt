@@ -1,4 +1,4 @@
-package me.earzuchan.sakiko.core.util
+package me.earzuchan.sakiko.api.utils
 
 object Log {
     enum class Level {

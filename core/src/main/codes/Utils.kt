@@ -1,0 +1,1 @@
+package me.earzuchan.sakiko.core.utils
