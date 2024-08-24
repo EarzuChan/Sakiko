@@ -13,7 +13,8 @@ rootProject.name = "Sakiko"
 include("api-old")
 include("core-old")
 include("extension-old")
-include("launcher-old")
+include("loader-old")
+
 include("api")
 include("loader")
 include("test")

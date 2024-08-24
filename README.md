@@ -9,7 +9,7 @@
 > 由于**开发不便**，暂不提供**macOS平台**的**本机库CI构建**
 >
 > 项目名称源自于 **BanG Dream! It's MyGO!!!!!** 中的角色**丰川祥子**
-> 
+>
 > **还在钩，还在钩**（指**Hooking**）
 
 ## 概述
@@ -89,28 +89,12 @@ java ...
 
 ### 开发模块
 
-您需要新建一个**打包成Jar**的**JavaLibrary**项目，并根据以下格式填写配置项文件。
-
-```yaml
-generator:
-  target-type: COMPAT
-  use-xxx: true # 指定使用一些特定的功能（参见文档）
-
-hook-module:
-  package-name: com.mamba # 您的模块包名
-  java-entry: com.mamba.MambaModule # 您的Java库入口点
-  native-entry: mamba # 您的本机库入口点
-  description: My new Hook Module. # 模块描述
-  api-level: 1919810 # API等级
-  host-scopes: # 主机作用域
-    - com.xxx.universe.system # 一条主机作用域
-```
-
-将配置项文件命名为**module_profile**，并放在**Jar的根目录**下。
+您需要新建一个**打包成Jar**的**JavaLibrary**项目。
 
 开发新版本模块需要使用Kotlin语言，以下是一个示例代码片段：
 
 ```kotlin
+@ExposedSakikoModule
 class MambaModule(hookContext: HookContext) : SakikoBaseModule(hookContext) {
     init { // 初始化
         SakikoHookAPI.configs { // 配置
@@ -177,14 +161,27 @@ class MambaModule(hookContext: HookContext) : SakikoBaseModule(hookContext) {
 
 【待计划】
 
+*如果您有关于模块安装的建议或者想法，欢迎在Issue中提出。*
+
 ### 说明
 
-这种范式受到未发布的新版YukiHook的启发，而且还没开始实现。
+这种范式受到未发布的新版YukiHookAPI的启发，但具体实现方式有所不同。
 
 该新Hook模块范式旨在提供一个灵活且易于配置的方式来创建和使用Hook模块。通过设置jar元数据和实现主类中的Hook逻辑，用户可以轻松地对指定的类和方法进行Hook。
 
 ## 展望
 
-- **KotlinHookAPI**：未来计划开发一套新的KotlinHookAPI，提供更便捷的Hook方式。
-- **安卓端Hook支持**：通过LSPosed的LSPlant，实现对安卓平台的Hook。
-- **桌面端内存修改Hook**：计划为桌面端JVM平台开发类似LSPlant的内存修改Hook方案，尽管可能对特定的JVM版本和型号有要求，适用性可能较差。
+- **新的HookAPI**：正在开发一套新的KotlinHookAPI以及相关配套组件，以为您提供开箱即用、灵活简易的Hook方案。
+- **废除旧范式**：正在渐进式地废除旧的模块范式，以新的模块范式为主。
+- **安卓端Hook支持**：未来计划引入LSPlant，以实现对安卓平台的Hook。
+- **新的Hook框架**：计划为常规JVM平台开发类似LSPlant的内存修改Hook方案，尽管可能对特定的JVM版本和型号有要求，但可以打造更快更稳定~~更搞笑~~的Hook方案。
+
+## 社区支持
+
+我们希望各位大手子能够为我们提供一些支持，这真的对我们很重要：
+
+1. **Star**：给我们一个Star，让我们知道您热爱我们的项目。
+2. **Issue与讨论**：如果您有任何问题或者建议，请在Issue和Discussion处留言。
+3. **参与开发**：我们真的很缺有能人士，目前您若想参与开发，请在Issue处留言
+4. **Pull Request**：如果您有更好的想法或者代码，也可以选择提交PR。当然最好您能够直接参与开发。
+5. **赞助**：如果您愿意，您可以通过~~给我们打钱~~赞助我们来支持我们的开发。

@@ -31,12 +31,8 @@ tasks.named("compileKotlin") {
 dependencies {
 }
 
-repositories {
-    mavenCentral()
-}
-
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(11)
 }
 
 tasks.jar {
