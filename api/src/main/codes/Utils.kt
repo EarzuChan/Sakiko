@@ -5,7 +5,7 @@ object Log {
         DEBUG, INFO, WARN, ERROR
     }
 
-    private var currentLevel: Level = Level.INFO
+    private var currentLevel: Level = Level.DEBUG
 
     fun setLevel(level: Level) {
         currentLevel = level

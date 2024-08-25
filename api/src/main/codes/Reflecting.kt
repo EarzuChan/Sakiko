@@ -3,6 +3,7 @@ package me.earzuchan.sakiko.api.reflecting
 import me.earzuchan.sakiko.api.HookConfig
 import me.earzuchan.sakiko.api.UnhookConfig
 import me.earzuchan.sakiko.api.hook
+import me.earzuchan.sakiko.api.utils.Log
 import java.lang.reflect.Constructor
 import java.lang.reflect.Executable
 import java.lang.reflect.Method
@@ -33,14 +34,15 @@ fun Class<*>.constructor(configure: ExecutableMatchConfig.() -> Unit = {}): Exec
 
 // 可执行匹配集
 class ExecutableMatches<T : Executable>(private val executables: List<T>) {
-    // 选择仅一个方法
-    fun hook(configure: HookConfig.() -> Unit): UnhookConfig {
-        if (executables.size == 1) {
-            return executables[0].hook(configure)
-        } else {
-            throw IllegalStateException("Multiple methods found. Use all() to select specific methods.")
+    init {
+        if (executables.isEmpty()) {
+            throw IllegalStateException("No executable found")
         }
+        Log.debug("Reflecting", "Found ${executables.size} executable(s)")
     }
+
+    // 选择仅一个方法
+    fun hook(configure: HookConfig.() -> Unit): UnhookConfig = it.hook(configure)
 
     // 选择所有方法
     fun all(): List<Executable> {
@@ -52,7 +54,7 @@ class ExecutableMatches<T : Executable>(private val executables: List<T>) {
             if (executables.size == 1) {
                 return executables[0]
             } else {
-                throw IllegalStateException("Multiple methods found. Use all() to select specific methods.")
+                throw IllegalStateException("Multiple executables found, please use all() instead")
             }
         }
 }

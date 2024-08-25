@@ -1,10 +1,10 @@
-on:
-  push:
-    branches: [mamba]
-  pull_request: {}
-  release:
-    types:
-      - created
+#on:
+#  push:
+#    branches: [mamba]
+#  pull_request: {}
+#  release:
+#    types:
+#      - created
 
 name: 原神？启动！
 

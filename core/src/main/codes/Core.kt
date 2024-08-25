@@ -4,7 +4,7 @@ import me.earzuchan.sakiko.api.HookConfig
 import me.earzuchan.sakiko.api.SakikoModule
 import me.earzuchan.sakiko.api.SakikoBridge
 import me.earzuchan.sakiko.api.reflecting.constructor
-import me.earzuchan.sakiko.core.util.Log
+import me.earzuchan.sakiko.api.utils.Log
 import java.lang.reflect.Executable
 
 const val TAG = "SakikoCore"
@@ -15,16 +15,20 @@ object Native {
 }
 
 object Runner {
-    val globalContext = SakikoModule.ModuleContext()
+    private val globalContext = SakikoModule.ModuleContext()
+    private val modules = mutableListOf<SakikoModule>()
 
     fun loadModule(moduleClass: Class<out SakikoModule>) {
+        Log.debug(TAG, "Loading Module ${moduleClass.name}")
+
         val module: SakikoModule = moduleClass.constructor().it.newInstance(globalContext) as SakikoModule
+
+        modules.add(module)
+
         module.onHook()
     }
 
     init {
-        Log.setLevel(Log.Level.DEBUG)
-
         ensureNative()
         ensureBridge()
     }
@@ -46,10 +50,10 @@ object Runner {
 
 public class SakikoBridgeImpl : SakikoBridge() {
     override fun hook(executable: Executable, config: HookConfig) {
-        Log.debug(TAG, "Hook ${executable.name}")
+        Log.debug(TAG, "Hooking ${executable.name}")
     }
 
     override fun unhook(executable: Executable) {
-        Log.debug(TAG, "Unhook ${executable.name}")
+        Log.debug(TAG, "Unhooking ${executable.name}")
     }
 }

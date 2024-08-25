@@ -1,7 +1,3 @@
-plugins {
-    kotlin("jvm")
-}
-
 val manCodePath = "src/main/codes"
 val generatedCodePath = "src/main/generated"
 
@@ -29,10 +25,6 @@ tasks.named("compileKotlin") {
 }
 
 dependencies {
-}
-
-kotlin {
-    jvmToolchain(11)
 }
 
 tasks.jar {
