@@ -69,5 +69,11 @@ class HookConfig {
 }
 
 class HookContext(val args: Array<Any?>, val instance: Any) {
-    var result: Any? = null
+    var result: Any?
+        get() {
+            throw UnsupportedOperationException("Cannot get result in before hook")
+        }
+        set(value) {
+            throw UnsupportedOperationException("Cannot set result in before hook")
+        }
 }

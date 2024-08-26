@@ -1,5 +1,6 @@
 dependencies {
     api(project(":api"))
+    implementation("org.junit.jupiter:junit-jupiter:5.8.1")
 }
 
 sourceSets {
@@ -10,7 +11,7 @@ sourceSets {
     }
     test {
         kotlin {
-            srcDirs("src/test/codes")
+            srcDirs("src/test-module/codes")
         }
     }
 }
@@ -26,7 +27,7 @@ tasks.register<JavaExec>("runTest") {
     // dependsOn(":buildNativeOnMyPc")
 
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("me.earzuchan.sakiko.test.Main")
+    mainClass.set("me.earzuchan.sakiko.test.TestMain")
 
     doFirst {
         val agentJar = project(":loader").tasks.named<Jar>("agentJar").get().archiveFile.get().asFile

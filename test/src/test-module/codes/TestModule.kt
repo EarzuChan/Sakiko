@@ -12,9 +12,8 @@ class TestModule(moduleContext: ModuleContext) : SakikoModule(moduleContext) {
     override fun onHook() {
         Log.info("TestModule", "onHook")
 
-        "me.earzuchan.sakiko.test.Main".toClass().method {
-            name = "test"
-            param(StringClass)
+        "me.earzuchan.sakiko.test.MethodsForTest".toClass().method {
+            name = "method1"
         }.hook {
             before {
                 println("Before hook")

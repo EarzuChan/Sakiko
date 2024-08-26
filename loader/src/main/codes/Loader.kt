@@ -13,50 +13,44 @@ const val TAG = "SakikoLoader"
 object LoaderEntry {
     @JvmStatic
     fun premain(agentArgs: String?, inst: Instrumentation) {
-        Log.info(TAG, "Loader Entry")
+        Log.info(TAG, "Loader Enter")
 
         agentArgs?.let { arg ->
-            Log.info(TAG, "Agent Args: $arg")
+            Log.info(TAG, "Given Args: $arg")
 
-            // 按','分割参数
             val jarPaths = arg.split(',')
-
-            val moduleClasses = mutableListOf<Class<out SakikoModule>>()
-
-            jarPaths.forEach {
-                File(it).let { file ->
-                    if (file.exists()) {
-                        Log.info(TAG, "Checking Jar: ${file.name}")
-
-                        JarFile(file).use { jar ->
-                            val entries = jar.entries()
-                            while (entries.hasMoreElements()) {
-                                val entry = entries.nextElement()
-                                if (entry.name.endsWith(".class")) {
-                                    val classBytes = jar.getInputStream(entry).readBytes()
-                                    val className = entry.name.removeSuffix(".class").replace('/', '.')
-                                    val clazz = loadClassFromBytes(classBytes, className)
-
-                                    if (clazz != null && clazz.annotations.any { it.annotationClass == ExposedSakikoModule::class }
-                                        && SakikoModule::class.java.isAssignableFrom(clazz)) {
-                                        Log.info(TAG, "Found Module Class: $className")
-
-                                        moduleClasses.add(clazz as Class<out SakikoModule>)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            val moduleClasses = jarPaths.mapNotNull { processJarFile(it) }.flatten()
 
             moduleClasses.forEach {
+                Log.info(TAG, "Loading Module: ${it.name}")
                 Runner.loadModule(it)
             }
         }
     }
 
-    // 使用隔离的ClassLoader加载类
+    private fun processJarFile(jarPath: String): List<Class<out SakikoModule>>? {
+        val file = File(jarPath)
+        if (!file.exists()) {
+            Log.warn(TAG, "Jar file does not exist: $jarPath")
+            return null
+        }
+
+        Log.info(TAG, "Checking Jar: ${file.name}")
+        return JarFile(file).use { jar ->
+            jar.entries().asSequence().filter { it.name.endsWith(".class") }.mapNotNull { entry ->
+                val classBytes = jar.getInputStream(entry).readBytes()
+                val className = entry.name.removeSuffix(".class").replace('/', '.')
+                loadClassFromBytes(classBytes, className)
+            }.filter { clazz ->
+                clazz.annotations.any { it.annotationClass == ExposedSakikoModule::class }
+                        && SakikoModule::class.java.isAssignableFrom(clazz)
+            }.map {
+                Log.info(TAG, "Module Class Found: ${it.name}")
+                it as Class<out SakikoModule>
+            }.toList()
+        }
+    }
+
     private fun loadClassFromBytes(classBytes: ByteArray, className: String): Class<*>? {
         return try {
             val classLoader = object : ClassLoader() {
