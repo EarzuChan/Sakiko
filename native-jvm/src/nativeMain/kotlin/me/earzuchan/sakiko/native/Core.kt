@@ -5,12 +5,14 @@ package me.earzuchan.sakiko.native
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.cinterop.*
+import kotlinx.cinterop.allocArrayOf
 import libjava.*
 import me.earzuchan.sakiko.native.models.JObjectStorage
 import me.earzuchan.sakiko.native.utils.JniUtils.getIfHasException
 import me.earzuchan.sakiko.native.utils.JniUtils.getJvmti
 import me.earzuchan.sakiko.native.utils.JniUtils.getEnv
 import me.earzuchan.sakiko.native.utils.JniUtils.getClassNameOf
+import me.earzuchan.sakiko.native.utils.JniUtils.getByteCodeBy
 import me.earzuchan.sakiko.native.utils.JniUtils.storeJObject
 import me.earzuchan.sakiko.native.utils.JniUtils.toJByteArray
 import me.earzuchan.sakiko.native.utils.Log
@@ -19,6 +21,7 @@ import kotlin.experimental.ExperimentalNativeApi
 val transforming = SynchronizedObject()
 val mapManipulating = SynchronizedObject()
 
+// 能用
 @CName("Java_me_earzuchan_sakiko_core_SakiNative_getClassByteCode")
 fun getClassByteCode(env: CPointer<JNIEnvVar>, jc: jclass, targetClass: jclass?): jobject {
     if (targetClass == null) throw IllegalArgumentException("目标类为null")
@@ -66,14 +69,43 @@ fun getClassByteCode(env: CPointer<JNIEnvVar>, jc: jclass, targetClass: jclass?)
     return env.toJByteArray(byteCode)
 }
 
+// 能用
 @CName("Java_me_earzuchan_sakiko_core_SakiNative_redefineClass")
 fun redefineClass(
-    env: CPointer<JNIEnvVar>,
-    jc: jclass,
-    targetClass: jobject,
-    newByteCode: jobject,
-    shouldBypassVerification: jboolean
+    env: CPointer<JNIEnvVar>, jc: jclass,
+    targetClass: jclass, byteCodeJ: jbyteArray,
+    shouldBypassVerification: jboolean // 这个先不理
 ) {
+    val TAG = "RedefineClass"
+    val byteCode = env.getByteCodeBy(byteCodeJ)
+    Log.d(TAG, "成功转为本地，大小：${byteCode.size}")
+    check(!env.getIfHasException()) { "JNI异常发生" }
+
+    val clzName = env.getClassNameOf(targetClass).also {
+        Log.d(TAG, "成功取得类名：$it")
+    }.replace('.', '/')
+
+    byteCode.usePinned { pinned ->
+        memScoped {
+            val classDefinition = cValue<jvmtiClassDefinition> {
+                klass = targetClass
+                class_byte_count = byteCode.size
+                class_bytes = pinned.addressOf(0).reinterpret()
+            }
+            Log.d(TAG, "成功创建类定义")
+
+            // TODO：这块本是Bypass校验
+
+            check(
+                jvmti!!.pointed.pointed!!.RedefineClasses!!(
+                    jvmti, 1, classDefinition.ptr
+                ) == JVMTI_ERROR_NONE
+            ) { "调用重定义类失败" }
+            Log.d(TAG, "成功重定义类")
+        }
+
+        // TODO：恢复校验
+    }
 }
 
 // 测试

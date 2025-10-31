@@ -51,7 +51,7 @@ object JniUtils {
     val Boolean.j: UByte get() = if (this) 1u else 0u
 
     // 定义一个接受 JNIEnv* 和 jstring 的 native 函数
-    fun CPointer<JNIEnvVar>.getString(jStr: jstring?): String? {
+    fun CPointer<JNIEnvVar>.getStringBy(jStr: jstring?): String? {
         val nonNullJStr = jStr ?: return null.also { Log.w(TAG, "Input jStr was null") }
         val realEnv = pointed.pointed!!
 
@@ -71,9 +71,9 @@ object JniUtils {
         return kStr
     }
 
-    fun CPointer<JNIEnvVar>.getFloatArray(jArr: jfloatArray?): FloatArray {
+    fun CPointer<JNIEnvVar>.getByteCodeBy(jArr: jbyteArray?): ByteArray {
         // 处理 null 输入，返回一个空数组，这比返回 null 更安全，避免了调用方的空检查
-        val nonNullJArr = jArr ?: return floatArrayOf().also {
+        val nonNullJArr = jArr ?: return byteArrayOf().also {
             Log.w(TAG, "Input jfloatArray was null, returning empty array")
         }
 
@@ -85,11 +85,8 @@ object JniUtils {
 
         // 失败时返回空数组
         val elementsPtr =
-            realEnv.GetFloatArrayElements!!.invoke(this, nonNullJArr, null) ?: return floatArrayOf().also {
-                Log.e(
-                    TAG,
-                    "JNI GetFloatArrayElements failed to get pointer"
-                )
+            realEnv.GetByteArrayElements!!.invoke(this, nonNullJArr, null) ?: return byteArrayOf().also {
+                Log.e(TAG, "JNI GetFloatArrayElements failed to get pointer")
             }
 
         // 检查 JNI 调用是否失败 (例如，内存不足)
@@ -97,19 +94,17 @@ object JniUtils {
         try {
             // 获取数组的长度
             val length = realEnv.GetArrayLength!!.invoke(this, nonNullJArr)
-            if (length == 0) return floatArrayOf()
+            if (length == 0) return byteArrayOf()
 
-            // 创建一个 Kotlin FloatArray
-            val kotlinArray = FloatArray(length)
+            // 创建一个 Kotlin Array
+            val kotlinArray = ByteArray(length)
             // 将数据从 C 指针复制到 Kotlin 数组
             for (i in 0 until length) kotlinArray[i] = elementsPtr[i]
 
             return kotlinArray
         } finally {
             //释放 C 指针
-            // 因为我们只是读取数据，没有做任何修改，所以使用 JNI_ABORT 是最高效的。
-            // 它告诉 JVM：“我没有修改任何东西，请直接释放内存，无需将数据复制回去。”
-            realEnv.ReleaseFloatArrayElements!!.invoke(this, nonNullJArr, elementsPtr, JNI_ABORT)
+            realEnv.ReleaseByteArrayElements!!.invoke(this, nonNullJArr, elementsPtr, JNI_ABORT)
         }
     }
 
@@ -138,6 +133,6 @@ object JniUtils {
         val nameJ = realEnv.CallObjectMethodA!!(this@getClassNameOf, clz, getName, null) as jstring
         if (getIfHasException()) throw IllegalStateException("打瓦喊妈妈")
 
-        getString(nameJ) ?: throw NullPointerException("坠机了")
+        getStringBy(nameJ) ?: throw NullPointerException("坠机了")
     }
 }

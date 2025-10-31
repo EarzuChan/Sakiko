@@ -5,6 +5,7 @@ import me.earzuchan.sakiko.api.bridge.SakiBridge
 import me.earzuchan.sakiko.api.hook.HookConfig
 import me.earzuchan.sakiko.api.hook.HookHandle
 import me.earzuchan.sakiko.api.hook.HookParam
+import me.earzuchan.sakiko.api.hook.hook
 import me.earzuchan.sakiko.api.utils.SLog
 import me.earzuchan.sakiko.core.utils.ByteCodeStorage
 import me.earzuchan.sakiko.core.utils.ByteCodeVerifier
@@ -45,9 +46,11 @@ data class TokenImpl(
 )
 
 internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
-    init {
+    /*init {
         setInstance(this)
-    }
+    }*/
+
+    fun init() = setInstance(this)
 
     val lock = Object()
 
@@ -157,7 +160,7 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
 
             // 🔑 关键：将hookId织入字节码中
             val newByteCode = ByteCodeWeaver.weave(man, oldByteCode, hookId)
-            ByteCodeVerifier.verify(newByteCode)
+            // TOD：ByteCodeVerifier.verify(newByteCode)
 
             // TODO：加载修改后的字节码
 
@@ -185,7 +188,7 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
         val snapshot = entity.callbacks.toList()
 
         // 1. 执行 Before 或 Replace 钩子
-        SLog.debug("Executing Before or Replace hooks for $man")
+        SLog.debug("Executing Before or Replace hooks for $man, callback count=${snapshot.size}")
 
         // 修正：不再使用简单的计数器，而是创建一个列表来存储成功执行了的钩子
         val executedHandles = mutableListOf<CallbackEntry>()
@@ -343,8 +346,10 @@ class ForTest {
 
 
 fun main() {
+    SakiBridgeImpl.init()
+
     val clz = ForTest::class.java
-    var byteCode = SakiNative.getClassByteCode(clz)
+    /*var byteCode = SakiNative.getClassByteCode(clz)
     File("bc_ori").writeBytes(byteCode)
 
     val method1 = clz.resolve().firstMethod { name = "funkIt" }.self
@@ -352,4 +357,30 @@ fun main() {
     val method2 = clz.resolve().firstMethod { name = "ohYeah" }.self
     byteCode = ByteCodeWeaver.weave(method2, byteCode, 1919810L)
     File("bc_new").writeBytes(byteCode)
+
+    SakiNative.redefineClass(clz, byteCode, false)
+
+    byteCode = SakiNative.getClassByteCode(clz)
+    File("bc_redef").writeBytes(byteCode)*/
+
+    clz.resolve().apply {
+        firstMethod { name = "funkIt" }.hook {
+            before {
+                println("bef")
+            }
+
+            after {
+                println("aft")
+            }
+        }
+
+        firstMethod { name = "ohYeah" }.hook {
+            replaceUnit {
+                println("just funk it")
+            }
+        }
+    }
+
+    ForTest().funkIt(114, "514")
+    ForTest.ohYeah(114, 514L, "1919810")
 }
