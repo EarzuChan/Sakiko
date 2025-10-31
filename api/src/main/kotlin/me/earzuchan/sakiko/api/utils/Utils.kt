@@ -44,7 +44,7 @@ object HookCheckUtils {
         require(man is Method || man is Constructor<*>) { "Only methods and constructors can be hooked: $man" }
         if (man is Method) require(!Modifier.isAbstract(man.modifiers)) { "Cannot hook abstract methods: $man" }
 
-        // TODO：另外native
+        // TODO：另外native暂不支持，以后支不支持
 
         val manClz = man.declaringClass
 

@@ -148,7 +148,7 @@ fun onJvmtiGetClassFile(
     else {
         Log.i(TAG, "接到类重定义：${jniEnv.getClassNameOf(classBeingRedefined)}")
 
-        val classFile = classData.readBytes(classDataLen) // CHECK：怕ubyte和byte不符
+        val classFile = classData.readBytes(classDataLen)
         val obj = jniEnv.storeJObject(classBeingRedefined)  // 保存全局引用
 
         classFileBytes[obj] = classFile

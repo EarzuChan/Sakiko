@@ -6,10 +6,10 @@ object SakikoAPI {
     const val VERSION = BuildConstants.VERSION
 
     object Status {
-        // TODO：STH
+        // TODO：Status
     }
 
     object Config {
-        // TODO：
+        // TODO：Config
     }
 }

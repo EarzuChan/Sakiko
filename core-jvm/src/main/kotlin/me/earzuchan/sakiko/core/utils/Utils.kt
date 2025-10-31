@@ -284,7 +284,7 @@ object InvokeHelper {
 
         return when (this) {
             is Method -> {
-                if (this.name == "<clinit>") TODO("暂不能")
+                if (this.name == "<clinit>") TODO("暂不能") // CHECK：原版能，得实现
                 val mh = lookup.unreflect(this)
                 if (Modifier.isStatic(this.modifiers)) mh.invokeWithArguments(*args)
                 else mh.invokeWithArguments(thiz, *args)

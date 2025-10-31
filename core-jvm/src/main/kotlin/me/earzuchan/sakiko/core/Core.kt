@@ -162,7 +162,7 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
             val newByteCode = ByteCodeWeaver.weave(man, oldByteCode, hookId)
             // TOD：ByteCodeVerifier.verify(newByteCode)
 
-            // TODO：加载修改后的字节码
+            // TODO：加载修改后的字节码？？加什么载，我昏头了？？
 
             SLog.debug("Process: Wove bytecode for $man with hookId=$hookId")
 
@@ -309,7 +309,7 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
 
         internal var _throwable: Throwable? = null
 
-        // TODO：如果在BEFORE中设置，应该EARLY RET
+        // CHECK：是否实现类如果在BEFORE中设置，应该EARLY RET
         override var throwable: Throwable?
             set(value) {
                 _result = null
@@ -321,10 +321,10 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
         internal var earlyReturn = false // 内部标志，用于 early return
 
         /**
-         * 调用原始方法。
-         * 只能在 replace lambda 中调用。在 before/after 中调用会抛出异常？←CHECK
+         * 调用原始方法
          */
-        override fun callOriginal(): Any? = TODO() // CHECK：用原参数还是新参数，如果对象是引用，那只可能是新参？
+        // CHECK：用原参数还是新参数，如果对象是引用，那只可能是新参？
+        override fun callOriginal(): Any? = invokeOriginal(*args)
 
         override fun invokeOriginal(vararg args: Any?): Any? {
             shouldInvokeOrigin.set(true)

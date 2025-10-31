@@ -57,6 +57,7 @@ abstract class HookParam {
 
     abstract var throwable: Throwable?
 
+    // TIPS：在原版XP中无此方法，纯为Fanke所加
     abstract fun callOriginal(): Any?
 
     abstract fun invokeOriginal(vararg args: Any?): Any?
