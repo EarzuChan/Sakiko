@@ -7,7 +7,11 @@ plugins {
     alias(libs.plugins.composeCompiler) apply false
 }
 
+buildscript { dependencies { classpath(libs.kotlinPoet) } }
+
 allprojects {
     group = "me.earzuchan.sakiko"
     version = "0.0.1"
 }
+
+subprojects { tasks.withType<Jar> { archiveBaseName.set("sakiko-${project.name}") } }

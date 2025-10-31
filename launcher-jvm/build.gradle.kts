@@ -14,7 +14,7 @@ kotlin { jvmToolchain(21) }
 tasks.jar { enabled = false }
 
 tasks.register<ShadowJar>("pack") {
-    archiveClassifier.set("launcher-jvm")
+    group = "build"
 
     // 1. 告诉任务，把项目主源码集编译后的 class 文件打包进去
     from(sourceSets.main.get().output)
@@ -23,7 +23,7 @@ tasks.register<ShadowJar>("pack") {
     configurations = listOf(project.configurations.runtimeClasspath.get())
 
     manifest {
-        attributes["Premain-Class"] = "me.earzuchan.sakiko.jvm.launcher.LauncherEntry"
+        attributes["Premain-Class"] = "me.earzuchan.sakiko.launcher.LauncherEntry"
         attributes["Can-Redefine-Classes"] = "true"
         attributes["Can-Retransform-Classes"] = "true"
     }

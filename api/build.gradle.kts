@@ -1,28 +1,43 @@
+import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.KModifier
+
 plugins {
     alias(libs.plugins.kotlinJvm)
     `java-library`
 }
 
+val appId = "${group}.api"
+
 kotlin { jvmToolchain(21) }
 
-tasks.compileKotlin { dependsOn(generateCodesEachTime) }
+tasks.compileKotlin { dependsOn(generateBuildConstants) }
 
 val generatedCodePath = "src/main/generated"
 
-val generateCodesEachTime by tasks.registering {
+val generateBuildConstants by tasks.registering {
     val outputDir = file(generatedCodePath)
-    val versionFile = File(outputDir, "Version.kt")
+    val constClzName = "BuildConstants"
 
-    inputs.property("version", project.version)
-    outputs.file(versionFile)
+    outputs.dir(outputDir)
 
     doLast {
-        outputDir.mkdirs()
-        versionFile.writeText(
-            """package me.earzuchan.sakiko.api
+        // 创建 Kotlin 文件
+        val buildConfigClass = TypeSpec.objectBuilder(constClzName).addModifiers(KModifier.INTERNAL)
+            .addProperty(
+                PropertySpec.builder("VERSION", String::class, KModifier.CONST)
+                    .initializer("%S", project.version)
+                    .build()
+            ).build()
 
-internal const val VERSION = "${project.version}"""".trimIndent()
-        )
+        // 生成文件
+        val file = FileSpec.builder(appId, constClzName)
+            .addType(buildConfigClass)
+            .build()
+
+        outputDir.mkdirs()
+        file.writeTo(outputDir)
     }
 }
 
