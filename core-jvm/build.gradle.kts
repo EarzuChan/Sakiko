@@ -7,8 +7,9 @@ kotlin { jvmToolchain(21) }
 
 dependencies {
     implementation(project(":api"))
-    implementation(libs.bytebuddy)
     implementation(libs.kotlinxCoroutinesCore)
+    implementation(libs.asm)
+    implementation(libs.asmUtil)
 }
 
 tasks.withType<Jar> { from(sourceSets.main.get().resources) }

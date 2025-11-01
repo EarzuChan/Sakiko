@@ -5,6 +5,7 @@ import me.earzuchan.sakiko.api.bridge.SakiBridge
 import me.earzuchan.sakiko.api.hook.HookConfig
 import me.earzuchan.sakiko.api.hook.HookHandle
 import me.earzuchan.sakiko.api.hook.HookParam
+import me.earzuchan.sakiko.api.hook.SakikoHookPriority
 import me.earzuchan.sakiko.api.hook.hook
 import me.earzuchan.sakiko.api.utils.SLog
 import me.earzuchan.sakiko.core.utils.ByteCodeStorage
@@ -12,7 +13,6 @@ import me.earzuchan.sakiko.core.utils.ByteCodeVerifier
 import me.earzuchan.sakiko.core.utils.ByteCodeWeaver
 import me.earzuchan.sakiko.core.utils.InvokeHelper.invokeUnwraply
 import me.earzuchan.sakiko.core.utils.NativeUtils
-import java.io.File
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Member
@@ -39,7 +39,6 @@ internal object SakiNative {
     external fun test2()
 }
 
-
 data class TokenImpl(
     val hookId: Long,
     val config: HookConfig
@@ -52,19 +51,17 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
 
     fun init() = setInstance(this)
 
-    val lock = Object()
-
     /** Hook项：包含方法信息和所有回调 */
     data class HookEntity(
         val member: Member,
-        // CopyOnWriteArrayList: 读多写少场景的最佳选择
         val callbacks: CopyOnWriteArrayList<CallbackEntry> = CopyOnWriteArrayList()
     )
 
 
     data class CallbackEntry(
         val config: HookConfig,
-        val handle: HookHandle<TokenImpl>
+        val handle: HookHandle<TokenImpl>,
+        val priority: SakikoHookPriority = SakikoHookPriority.DEFAULT
     )
 
     // ==================== 注册表 ====================
@@ -72,17 +69,19 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
     /** hookId -> 完整的Hook上下文 */
     private val hookRegistry = ConcurrentHashMap<Long, HookEntity>()
 
-    /** Member -> hookId 的索引，用于快速查找是否已hook */
-    private val methodIndex = ConcurrentHashMap<Member, Long>()
+    /** Member -> hookId 的索引，已处理的方法和它对应的hookId */
+    private val processedMethodMap = ConcurrentHashMap<Member, Long>()
 
     /** hookId分配器 */
     private val hookIdAllocator = AtomicLong(1)
 
     // ==================== 核心Hook流程 ====================
 
-    override fun coreHook(man: Member, config: HookConfig): HookHandle<TokenImpl> {
+    override fun coreHook(man: Member, config: HookConfig, priority: SakikoHookPriority): HookHandle<TokenImpl> {
+        // TODO：在下面实现priority
+
         // 获取或分配hookId（首次hook时织入字节码）
-        val hookId = methodIndex.computeIfAbsent(man) {
+        val hookId = processedMethodMap.computeIfAbsent(man) {
             val id = hookIdAllocator.getAndIncrement()
             process(it, id)  // 织入字节码，传入hookId
 
@@ -99,18 +98,18 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
 
         // 第三步：添加回调（线程安全）
         synchronized(context.callbacks) {
-            // 检查重复hook
             require(context.callbacks.none { it.config == config }) {
                 "这个回调已经肘赢过$man"
             }
-
-            // 创建token和handle
             val handle = HookHandle(TokenImpl(hookId, config))
+            val entry = CallbackEntry(config, handle, priority)
 
-            // 添加到callbacks列表
-            context.callbacks.add(CallbackEntry(config, handle))
+            // 找第一个优先级小于当前优先级的位置（ordinal更大）
+            val insertIndex = context.callbacks.indexOfFirst { it.priority > priority }
+                .takeIf { it >= 0 } ?: context.callbacks.size
+            context.callbacks.add(insertIndex, entry)
 
-            SLog.debug("Hook：$man；ID：$hookId；CCB：${context.callbacks.size}")
+            SLog.debug("Hook：$man；ID：$hookId；Priority：$priority；CCB：${context.callbacks.size}")
 
             return handle
         }
@@ -133,36 +132,27 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
                 val remaining = context.callbacks.size
                 SLog.debug("Unhook success: ${context.member}, remaining=$remaining")
 
-                // 🗑️ 所有回调移除后，清理HookContext
-                // ⚠️ 注意：memberIndex不清理（字节码无法还原）
+                // 🗑️ 所有回调移除后，清理HookContext；processedMethodMap不清理（已实装的字节码无法还原）
                 if (remaining == 0) {
                     hookRegistry.remove(hookId)
                     SLog.debug("Context cleaned: hookId=${hookId} (bytecode still there)")
                 }
-            } else {
-                SLog.warn("Unhook: Config not found for hookId=$hookId")
-            }
+            } else SLog.warn("Unhook: Config not found for hookId=$hookId")
         }
     }
 
-    // ==================== 字节码织入 ====================
+    // ==================== 方法处理 ====================
 
-    /**
-     * 织入字节码（仅在首次hook该方法时调用）
-     * @param man 被hook的方法
-     * @param hookId 分配的唯一ID，会织入字节码中作为常数
-     */
     private fun process(man: Member, hookId: Long) {
         val targetClass = man.declaringClass
 
-        synchronized(lock) {
+        synchronized(targetClass) {
             val oldByteCode = ByteCodeStorage.getByClass(targetClass)
 
             // 🔑 关键：将hookId织入字节码中
             val newByteCode = ByteCodeWeaver.weave(man, oldByteCode, hookId)
-            // TOD：ByteCodeVerifier.verify(newByteCode)
 
-            // TODO：加载修改后的字节码？？加什么载，我昏头了？？
+            ByteCodeVerifier.verify(newByteCode)
 
             SLog.debug("Process: Wove bytecode for $man with hookId=$hookId")
 
@@ -173,10 +163,6 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
         }
     }
 
-    /**
-     * 从中转跳板调用此方法
-     * 被织入的Prologue代码会将hookId和参数传过来
-     */
     @JvmStatic
     fun handleHookedMethod(entity: HookEntity, instance: Any?, args: Array<Any?>): Any? {
         val man = entity.member
@@ -344,43 +330,182 @@ class ForTest {
     }
 }
 
+open class Vater {
+    open fun a() = "Fuck you"
+    open fun b() = "Suck your Dick"
+}
+
+class Sohn : Vater() {
+    override fun a() = "Fuck me"
+    // NOT OVERRIDIN B
+}
+
+class Man {
+    fun whatHeCanSay() = "Mamba out"
+    fun kobe() = 111
+}
 
 fun main() {
     SakiBridgeImpl.init()
 
-    val clz = ForTest::class.java
-    /*var byteCode = SakiNative.getClassByteCode(clz)
-    File("bc_ori").writeBytes(byteCode)
+    testVaterSohn()
+    testMultiAndPriority()
+}
 
-    val method1 = clz.resolve().firstMethod { name = "funkIt" }.self
-    byteCode = ByteCodeWeaver.weave(method1, byteCode, 114514L)
-    val method2 = clz.resolve().firstMethod { name = "ohYeah" }.self
-    byteCode = ByteCodeWeaver.weave(method2, byteCode, 1919810L)
-    File("bc_new").writeBytes(byteCode)
-
-    SakiNative.redefineClass(clz, byteCode, false)
-
-    byteCode = SakiNative.getClassByteCode(clz)
-    File("bc_redef").writeBytes(byteCode)*/
-
-    clz.resolve().apply {
-        firstMethod { name = "funkIt" }.hook {
+fun testVaterSohn() {
+    Vater::class.resolve().apply {
+        firstMethod { name = "a" }.hook {
             before {
-                println("bef")
-            }
-
-            after {
-                println("aft")
+                SLog.debug("bef vater a")
+                SLog.debug("result: ${callOriginal()}")
+                SLog.debug("aft callin org vater a")
             }
         }
 
-        firstMethod { name = "ohYeah" }.hook {
-            replaceUnit {
-                println("just funk it")
+        firstMethod { name = "b" }.hook {
+            before {
+                SLog.debug("bef vater b")
+                SLog.debug("result: ${callOriginal()}")
+                SLog.debug("aft callin org vater b")
             }
         }
     }
 
-    ForTest().funkIt(114, "514")
-    ForTest.ohYeah(114, 514L, "1919810")
+    Sohn::class.resolve().apply {
+        // RESULT：仅仅SOHN
+        firstMethod { name = "a" }.hook {
+            before {
+                SLog.debug("bef sohn a")
+                SLog.debug("result: ${callOriginal()}")
+                SLog.debug("aft callin org sohn a")
+            }
+        }
+
+        // RESULT：完全等于Vater的bHook
+        firstMethod {
+            name = "b"
+            superclass() // u kno
+        }.hook {
+            before {
+                SLog.debug("bef sohn b")
+                SLog.debug("result: ${callOriginal()}")
+                SLog.debug("aft callin org sohn b")
+            }
+        }
+    }
+
+    SLog.info("\n\nvater")
+    val vater = Vater()
+    vater.a()
+    vater.b()
+
+    SLog.info("\n\nsohn")
+    val sohn = Sohn()
+    sohn.a()
+    sohn.b()
+
+    // RESULT：跟直接Sohn的触发结果一样，就是实例本身的类型管用
+    SLog.info("\n\njunge")
+    val junge = Sohn() as Vater
+    junge.a()
+    junge.b()
+}
+
+fun testMultiAndPriority() {
+    val manClass = Man::class.resolve()
+
+    val whatHeCanSayMethod = manClass.firstMethod { name = "whatHeCanSay" }
+    val kobeMethod = manClass.firstMethod { name = "kobe" }
+
+    // WCS RESULT：123-321
+
+    whatHeCanSayMethod.hook {
+        before {
+            SLog.debug("bef wc 1")
+        }
+
+        after {
+            SLog.debug("aft wc 1")
+        }
+    }
+
+    whatHeCanSayMethod.hook {
+        before {
+            SLog.debug("bef wc 2")
+        }
+
+        after {
+            SLog.debug("aft wc 2")
+        }
+    }
+
+    whatHeCanSayMethod.hook {
+        before {
+            SLog.debug("bef wc 3")
+        }
+
+        before {
+            SLog.debug("bef wc 3 - dup") // 会覆盖上一个
+        }
+
+        after {
+            SLog.debug("aft wc 3")
+        }
+    }
+
+    // K RESULT：h h2 d l l2-l2 l d h2 h
+
+    kobeMethod.hook(SakikoHookPriority.LOWEST) {
+        before {
+            SLog.debug("bef k l")
+        }
+
+        after {
+            SLog.debug("aft k l")
+        }
+    }
+
+    kobeMethod.hook {
+        before {
+            SLog.debug("bef k d")
+        }
+
+        after {
+            SLog.debug("aft k d")
+        }
+    }
+
+    kobeMethod.hook(SakikoHookPriority.LOWEST) {
+        before {
+            SLog.debug("bef k l2")
+        }
+
+        after {
+            SLog.debug("aft k l2")
+        }
+    }
+
+    kobeMethod.hook(SakikoHookPriority.HIGHEST) {
+        before {
+            SLog.debug("bef k h")
+        }
+
+        after {
+            SLog.debug("aft k h")
+        }
+    }
+
+    kobeMethod.hook(SakikoHookPriority.HIGHEST) {
+        before {
+            SLog.debug("bef k h2")
+        }
+
+        after {
+            SLog.debug("aft k h2")
+        }
+    }
+
+    val man = Man()
+    man.whatHeCanSay()
+    man.kobe()
 }

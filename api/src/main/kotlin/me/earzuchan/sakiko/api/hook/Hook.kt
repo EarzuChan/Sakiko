@@ -9,6 +9,10 @@ import com.highcapable.kavaref.resolver.base.MemberResolver
 import me.earzuchan.sakiko.api.bridge.SakiBridge
 import java.lang.reflect.Member
 
+enum class SakikoHookPriority {
+    HIGHEST, DEFAULT, LOWEST
+}
+
 class HookHandle<TOKEN : Any>(val token: TOKEN) {
     fun remove() = SakiBridge.requireInstance().asResolver().firstMethod { name = "unhook" }.invoke(this)
 }
@@ -63,19 +67,25 @@ abstract class HookParam {
     abstract fun invokeOriginal(vararg args: Any?): Any?
 }
 
-// TODO：添加HOOK的优先级
+// 暴露的API，扩展方法属于是
+inline fun MemberResolver<*, *>.hook(
+    priority: SakikoHookPriority = SakikoHookPriority.DEFAULT,
+    configure: HookConfig.() -> Unit
+): HookHandle<out Any> =
+    when (this) {
+        is ConstructorResolver,
+        is MethodResolver -> {
+            val config = HookConfig().apply(configure)
+            val man = self
 
-inline fun MemberResolver<*, *>.hook(configure: HookConfig.() -> Unit): HookHandle<out Any> = when (this) {
-    is ConstructorResolver,
-    is MethodResolver -> {
-        val config = HookConfig().apply(configure)
-        val man = self
+            hookMember(man, config, priority)
+        }
 
-        hookMember(man, config)
+        else -> error("This type [$this] not support to hook, supported are Constructors and Methods")
     }
 
-    else -> error("This type [$this] not support to hook, supported are Constructors and Methods")
-}
+// 也是暴露的API
+fun hookMember(man: Member, config: HookConfig, priority: SakikoHookPriority = SakikoHookPriority.DEFAULT): HookHandle<out Any> =
+    SakiBridge.requireInstance().checkAndHook(man, config, priority)
 
-fun hookMember(man: Member, config: HookConfig): HookHandle<out Any> =
-    SakiBridge.requireInstance().checkAndHook(man, config)
+// CHECK：还需要一个Member.hook()吗？

@@ -1,14 +1,11 @@
 package me.earzuchan.sakiko.core.utils
 
-import net.bytebuddy.jar.asm.Opcodes
 import me.earzuchan.sakiko.core.SakiNative
-import net.bytebuddy.jar.asm.ClassReader
-import net.bytebuddy.jar.asm.ClassVisitor
-import net.bytebuddy.jar.asm.ClassWriter
-import net.bytebuddy.jar.asm.Label
-import net.bytebuddy.jar.asm.MethodVisitor
-import net.bytebuddy.jar.asm.Type
+import org.objectweb.asm.*
+import org.objectweb.asm.util.CheckClassAdapter
 import java.io.File
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.lang.invoke.MethodHandles
 import java.lang.reflect.Constructor
 import java.lang.reflect.Member
@@ -269,7 +266,18 @@ object ByteCodeWeaver {
 }
 
 object ByteCodeVerifier {
-    fun verify(bc: ByteArray): Unit = TODO()
+    fun verify(bc: ByteArray) {
+        val verificationResult = StringWriter().use { stringWriter ->
+            PrintWriter(stringWriter).use { printWriter ->
+                CheckClassAdapter.verify(ClassReader(bc), false, printWriter)
+            }
+            stringWriter.toString()
+        }
+
+        require(verificationResult.isEmpty()) {
+            "Class file verification failed: $verificationResult"
+        }
+    }
 }
 
 object InvokeHelper {
@@ -282,9 +290,9 @@ object InvokeHelper {
 
         val lookup = MethodHandles.lookup()
 
+        // CHECK：原版能<clinit>，得实现
         return when (this) {
             is Method -> {
-                if (this.name == "<clinit>") TODO("暂不能") // CHECK：原版能，得实现
                 val mh = lookup.unreflect(this)
                 if (Modifier.isStatic(this.modifiers)) mh.invokeWithArguments(*args)
                 else mh.invokeWithArguments(thiz, *args)

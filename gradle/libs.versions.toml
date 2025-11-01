@@ -11,16 +11,17 @@ kotlinxCoroutinesCore = "1.10.2"
 lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
 composeBom = "2025.10.01"
-junit = "6.0.0" # JUnit 版本
-shadowJar = "8.1.1" # ShadowJar 插件版本
-bytebuddy = "1.17.8" # ByteBuddy 版本
-kavaRefCore = "1.0.2" # KavaRef 版本
-kavaRefExt = "1.0.1" # KavaRef 版本
+junit = "6.0.0"
+shadowJar = "8.1.1"
+kavaRefCore = "1.0.2"
+kavaRefExt = "1.0.1"
+asm = "9.9"
 
 [libraries]
 kotlinPoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinPoet" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
-bytebuddy = { group = "net.bytebuddy", name = "byte-buddy", version.ref = "bytebuddy" }
+asm = { module = "org.ow2.asm:asm", version.ref = "asm" }
+asmUtil = { module = "org.ow2.asm:asm-util", version.ref = "asm" }
 kavaRefCore = { module = "com.highcapable.kavaref:kavaref-core", version.ref = "kavaRefCore" }
 kavaRefExt = { module = "com.highcapable.kavaref:kavaref-extension", version.ref = "kavaRefExt" }
 coreKtx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
