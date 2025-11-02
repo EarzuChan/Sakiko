@@ -12,9 +12,12 @@ dependencies {
     implementation(libs.asmUtil)
 }
 
-tasks.withType<Jar> { from(sourceSets.main.get().resources) }
+/*tasks.jar {
+    from(sourceSets.main.get().resources)
+}*/
 
 // TIPS：mac的库需要在mac上构建
+// CHECK：记得关闭注释
 val buildAndCopyNativeLibs by tasks.registering {
     group = "build"
     description = "Build native libraries and copy them"

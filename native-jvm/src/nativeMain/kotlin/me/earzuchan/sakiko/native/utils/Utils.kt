@@ -5,13 +5,13 @@ import libjava.*
 import me.earzuchan.sakiko.native.models.JObjectStorage
 
 object Log {
-    fun d(tag: String, msg: String) = println("[D] $tag > $msg")
+    fun d(tag: String, msg: String) = println("[DEBUG] $tag > $msg")
 
-    fun e(tag: String, msg: String) = println("[E] $tag > $msg")
-    fun e(tag: String, msg: String, e: Throwable) = println("[E] $tag > $msg\n${e.stackTraceToString()}")
+    fun e(tag: String, msg: String) = println("[ERROR] $tag > $msg")
+    fun e(tag: String, msg: String, e: Throwable) = println("[ERROR] $tag > $msg\n${e.stackTraceToString()}")
 
-    fun i(tag: String, msg: String) = println("[I] $tag > $msg")
-    fun w(tag: String, msg: String) = println("[W] $tag > $msg")
+    fun i(tag: String, msg: String) = println("[INFO] $tag > $msg")
+    fun w(tag: String, msg: String) = println("[WARN] $tag > $msg")
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -46,9 +46,11 @@ object JniUtils {
         return theOne
     }
 
-    fun CPointer<JNIEnvVar>.getIfHasException(): Boolean = pointed.pointed!!.ExceptionCheck!!(this) == 1.toUByte()
+    fun CPointer<JNIEnvVar>.hasException(): Boolean = pointed.pointed!!.ExceptionCheck!!(this) == 1.toUByte()
 
     val Boolean.j: UByte get() = if (this) 1u else 0u
+
+    val jboolean.k: Boolean get() = this == 1.toUByte()
 
     // 定义一个接受 JNIEnv* 和 jstring 的 native 函数
     fun CPointer<JNIEnvVar>.getStringBy(jStr: jstring?): String? {
@@ -71,7 +73,7 @@ object JniUtils {
         return kStr
     }
 
-    fun CPointer<JNIEnvVar>.getByteCodeBy(jArr: jbyteArray?): ByteArray {
+    fun CPointer<JNIEnvVar>.getByteArrayBy(jArr: jbyteArray?): ByteArray {
         // 处理 null 输入，返回一个空数组，这比返回 null 更安全，避免了调用方的空检查
         val nonNullJArr = jArr ?: return byteArrayOf().also {
             Log.w(TAG, "Input jfloatArray was null, returning empty array")
@@ -112,7 +114,7 @@ object JniUtils {
 
     fun CPointer<JNIEnvVar>.toJByteArray(byteArray: ByteArray): jbyteArray {
         val rE = pointed.pointed!!
-        val jArr = rE.NewByteArray!!(this, byteArray.size) ?: throw IllegalStateException("要数组，ENV给了个NullPtr")
+        val jArr = rE.NewByteArray!!(this, byteArray.size) ?: error("要数组，ENV给了个NullPtr")
 
         byteArray.usePinned {
             rE.SetByteArrayRegion!!(this, jArr, 0, byteArray.size, it.addressOf(0).reinterpret())
@@ -127,12 +129,161 @@ object JniUtils {
         val mamba = realEnv.FindClass!!(this@getClassNameOf, "java/lang/Class".cstr.ptr)
         val getName =
             realEnv.GetMethodID!!(this@getClassNameOf, mamba, "getName".cstr.ptr, "()Ljava/lang/String;".cstr.ptr)
-                ?: throw IllegalStateException("不有GetName方法")
+                ?: error("不有GetName方法")
         realEnv.DeleteLocalRef!!(this@getClassNameOf, mamba)
 
         val nameJ = realEnv.CallObjectMethodA!!(this@getClassNameOf, clz, getName, null) as jstring
-        if (getIfHasException()) throw IllegalStateException("打瓦喊妈妈")
+        if (hasException()) error("打瓦喊妈妈")
 
         getStringBy(nameJ) ?: throw NullPointerException("坠机了")
+    }
+
+    fun CPointer<JNIEnvVar>.unwrap(ori: jobject, to: jvalue, by: Char) = memScoped {
+        val jni = pointed.pointed!!
+
+        fun illegal(): Nothing = error("找不到好方法捏")
+
+        when (by) {
+            'Z' -> {
+                val kBoolean = jni.FindClass!!(this@unwrap, "java/lang/Boolean".cstr.ptr)
+                val cid = jni.GetMethodID!!(this@unwrap, kBoolean, "booleanValue".cstr.ptr, "()Z".cstr.ptr) ?: illegal()
+                to.z = jni.CallBooleanMethodA!!(this@unwrap, ori, cid, null)
+            }
+
+            'B' -> {
+                val kByte = jni.FindClass!!(this@unwrap, "java/lang/Byte".cstr.ptr)
+                val cid = jni.GetMethodID!!(this@unwrap, kByte, "byteValue".cstr.ptr, "()B".cstr.ptr) ?: illegal()
+                to.b = jni.CallByteMethodA!!(this@unwrap, ori, cid, null)
+            }
+
+            'C' -> {
+                val kChar = jni.FindClass!!(this@unwrap, "java/lang/Character".cstr.ptr)
+                val cid = jni.GetMethodID!!(this@unwrap, kChar, "charValue".cstr.ptr, "()C".cstr.ptr) ?: illegal()
+                to.c = jni.CallCharMethodA!!(this@unwrap, ori, cid, null)
+            }
+
+            'S' -> {
+                val kShort = jni.FindClass!!(this@unwrap, "java/lang/Short".cstr.ptr)
+                val cid = jni.GetMethodID!!(this@unwrap, kShort, "shortValue".cstr.ptr, "()S".cstr.ptr) ?: illegal()
+                to.s = jni.CallShortMethodA!!(this@unwrap, ori, cid, null)
+            }
+
+            'I' -> {
+                val kInt = jni.FindClass!!(this@unwrap, "java/lang/Integer".cstr.ptr)
+                val cid = jni.GetMethodID!!(this@unwrap, kInt, "intValue".cstr.ptr, "()I".cstr.ptr) ?: illegal()
+                to.i = jni.CallIntMethodA!!(this@unwrap, ori, cid, null)
+            }
+
+            'J' -> {
+                val kLong = jni.FindClass!!(this@unwrap, "java/lang/Long".cstr.ptr)
+                val cid = jni.GetMethodID!!(this@unwrap, kLong, "longValue".cstr.ptr, "()J".cstr.ptr) ?: illegal()
+                to.j = jni.CallLongMethodA!!(this@unwrap, ori, cid, null)
+            }
+
+            'F' -> {
+                val kFloat = jni.FindClass!!(this@unwrap, "java/lang/Float".cstr.ptr)
+                val cid = jni.GetMethodID!!(this@unwrap, kFloat, "floatValue".cstr.ptr, "()F".cstr.ptr) ?: illegal()
+                to.f = jni.CallFloatMethodA!!(this@unwrap, ori, cid, null)
+            }
+
+            'D' -> {
+                val kDouble = jni.FindClass!!(this@unwrap, "java/lang/Double".cstr.ptr)
+                val cid = jni.GetMethodID!!(this@unwrap, kDouble, "doubleValue".cstr.ptr, "()D".cstr.ptr) ?: illegal()
+                to.d = jni.CallDoubleMethodA!!(this@unwrap, ori, cid, null)
+            }
+
+            'V' -> to.l = null
+
+            'L' -> to.l = ori
+
+            else -> error("妈的：$by")
+        }
+    }
+
+    fun CPointer<JNIEnvVar>.unwrap(ori: jobject, by: Char): jvalue = memScoped {
+        return alloc<jvalue>().also { unwrap(ori, it, by) }
+    }
+
+    fun CPointer<JNIEnvVar>.wrap(ori: jvalue, by: Char): jobject? = memScoped {
+        val jni = pointed.pointed!!
+
+        return when (by) {
+            'Z' -> {
+                val kBoolean = jni.FindClass!!(this@wrap, "java/lang/Boolean".cstr.ptr)
+
+                val cid =
+                    jni.GetStaticMethodID!!(this@wrap, kBoolean, "valueOf".cstr.ptr, "(Z)Ljava/lang/Boolean;".cstr.ptr)
+
+                jni.CallStaticObjectMethodA!!(this@wrap, kBoolean, cid, ori.ptr)
+            }
+
+            'B' -> {
+                val kByte = jni.FindClass!!(this@wrap, "java/lang/Byte".cstr.ptr)
+
+                val cid = jni.GetStaticMethodID!!(this@wrap, kByte, "valueOf".cstr.ptr, "(B)Ljava/lang/Byte;".cstr.ptr)
+
+                jni.CallStaticObjectMethodA!!(this@wrap, kByte, cid, ori.ptr)
+            }
+
+            'C' -> {
+                val kChar = jni.FindClass!!(this@wrap, "java/lang/Character".cstr.ptr)
+
+                val cid =
+                    jni.GetStaticMethodID!!(this@wrap, kChar, "valueOf".cstr.ptr, "(C)Ljava/lang/Character;".cstr.ptr)
+
+                jni.CallStaticObjectMethodA!!(this@wrap, kChar, cid, ori.ptr)
+            }
+
+            'S' -> {
+                val kShort = jni.FindClass!!(this@wrap, "java/lang/Short".cstr.ptr)
+
+                val cid =
+                    jni.GetStaticMethodID!!(this@wrap, kShort, "valueOf".cstr.ptr, "(S)Ljava/lang/Short;".cstr.ptr)
+
+                jni.CallStaticObjectMethodA!!(this@wrap, kShort, cid, ori.ptr)
+            }
+
+            'I' -> {
+                val kInt = jni.FindClass!!(this@wrap, "java/lang/Integer".cstr.ptr)
+
+                val cid =
+                    jni.GetStaticMethodID!!(this@wrap, kInt, "valueOf".cstr.ptr, "(I)Ljava/lang/Integer;".cstr.ptr)
+
+                jni.CallStaticObjectMethodA!!(this@wrap, kInt, cid, ori.ptr)
+            }
+
+            'J' -> {
+                val kLong = jni.FindClass!!(this@wrap, "java/lang/Long".cstr.ptr)
+
+                val cid =
+                    jni.GetStaticMethodID!!(this@wrap, kLong, "valueOf".cstr.ptr, "(J)Ljava/lang/Long;".cstr.ptr)
+
+                jni.CallStaticObjectMethodA!!(this@wrap, kLong, cid, ori.ptr)
+            }
+
+            'F' -> {
+                val kFloat = jni.FindClass!!(this@wrap, "java/lang/Float".cstr.ptr)
+
+                val cid =
+                    jni.GetStaticMethodID!!(this@wrap, kFloat, "valueOf".cstr.ptr, "(F)Ljava/lang/Float;".cstr.ptr)
+
+                jni.CallStaticObjectMethodA!!(this@wrap, kFloat, cid, ori.ptr)
+            }
+
+            'D' -> {
+                val kDouble = jni.FindClass!!(this@wrap, "java/lang/Double".cstr.ptr)
+
+                val cid =
+                    jni.GetStaticMethodID!!(this@wrap, kDouble, "valueOf".cstr.ptr, "(D)Ljava/lang/Double;".cstr.ptr)
+
+                jni.CallStaticObjectMethodA!!(this@wrap, kDouble, cid, ori.ptr)
+            }
+
+            'V' -> null
+
+            'L' -> ori.l
+
+            else -> error("妈的：$by")
+        }
     }
 }

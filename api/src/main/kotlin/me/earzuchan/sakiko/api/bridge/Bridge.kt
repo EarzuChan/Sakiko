@@ -36,6 +36,6 @@ abstract class SakiBridge<TOKEN : Any> {
         }
 
         fun requireInstance(): SakiBridge<out Any> =
-            INSTANCE ?: throw IllegalStateException("No instance for you!!") // 致敬传奇JvmXposed
+            INSTANCE ?: error("No instance for you!!") // 致敬传奇JvmXposed
     }
 }

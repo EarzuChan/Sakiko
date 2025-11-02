@@ -8,13 +8,17 @@ import kotlinx.cinterop.*
 import kotlinx.cinterop.allocArrayOf
 import libjava.*
 import me.earzuchan.sakiko.native.models.JObjectStorage
-import me.earzuchan.sakiko.native.utils.JniUtils.getIfHasException
+import me.earzuchan.sakiko.native.utils.JniUtils.hasException
 import me.earzuchan.sakiko.native.utils.JniUtils.getJvmti
 import me.earzuchan.sakiko.native.utils.JniUtils.getEnv
 import me.earzuchan.sakiko.native.utils.JniUtils.getClassNameOf
-import me.earzuchan.sakiko.native.utils.JniUtils.getByteCodeBy
+import me.earzuchan.sakiko.native.utils.JniUtils.getByteArrayBy
+import me.earzuchan.sakiko.native.utils.JniUtils.getStringBy
+import me.earzuchan.sakiko.native.utils.JniUtils.k
 import me.earzuchan.sakiko.native.utils.JniUtils.storeJObject
 import me.earzuchan.sakiko.native.utils.JniUtils.toJByteArray
+import me.earzuchan.sakiko.native.utils.JniUtils.unwrap
+import me.earzuchan.sakiko.native.utils.JniUtils.wrap
 import me.earzuchan.sakiko.native.utils.Log
 import kotlin.experimental.ExperimentalNativeApi
 
@@ -65,7 +69,7 @@ fun getClassByteCode(env: CPointer<JNIEnvVar>, jc: jclass, targetClass: jclass?)
         }
     }
 
-    check(!env.getIfHasException()) { "JNI异常发生" }
+    check(!env.hasException()) { "JNI异常发生" }
     return env.toJByteArray(byteCode)
 }
 
@@ -77,9 +81,9 @@ fun redefineClass(
     shouldBypassVerification: jboolean // 这个先不理
 ) {
     val TAG = "RedefineClass"
-    val byteCode = env.getByteCodeBy(byteCodeJ)
-    Log.d(TAG, "成功转为本地，大小：${byteCode.size}")
-    check(!env.getIfHasException()) { "JNI异常发生" }
+    val byteCode = env.getByteArrayBy(byteCodeJ)
+    Log.d(TAG, "这位置不错，大小：${byteCode.size}")
+    check(!env.hasException()) { "JNI异常发生" }
 
     val clzName = env.getClassNameOf(targetClass).also {
         Log.d(TAG, "成功取得类名：$it")
@@ -101,40 +105,166 @@ fun redefineClass(
                     jvmti, 1, classDefinition.ptr
                 ) == JVMTI_ERROR_NONE
             ) { "调用重定义类失败" }
-            Log.d(TAG, "成功重定义类")
+            Log.d(TAG, "成功重定义类，想Hook是吧，我奉陪")
         }
 
         // TODO：恢复校验
     }
 }
 
-// 测试
+@CName("Java_me_earzuchan_sakiko_core_SakiNative_getClInitOrNull")
+fun getClInitOrNull(env: CPointer<JNIEnvVar>, jc: jclass, targetClass: jclass): jobject? {
+    val TAG = "GetClassInitializer"
 
-data class TestClz(val man: Int)
+    val jvmtiInterface = jvmti!!.pointed.pointed!!
+    val envInterface = env.pointed.pointed!!
+    val className = env.getClassNameOf(targetClass)
 
-var nun = -1
-var mamba: TestClz? = null
-var ao: TestClz = TestClz(1919)
+    memScoped {
+        fun deallocate(ptr: CPointer<*>?) {
+            ptr?.let { jvmtiInterface.Deallocate!!(jvmti!!, it.reinterpret()) }
+        }
 
-@CName("Java_me_earzuchan_sakiko_core_SakiNative_test1")
-fun test1(env: CPointer<JNIEnvVar>, jc: jclass) {
-    val TAG = "Test1"
+        val countRef = alloc<IntVar>()
+        val methodsRef = alloc<CPointerVar<jmethodIDVar>>() // CHECK：也许是得换成cArray或者是cValues？
 
-    Log.i(TAG, "ao：${ao.man}")
+        // CHECK：何意为！这不该失败
+        val rc = jvmtiInterface.GetClassMethods!!(jvmti, targetClass, countRef.ptr, methodsRef.ptr)
+        if (rc != JVMTI_ERROR_NONE) error("拨弄不到啊一个一个方法们：$className；情况：$rc")
 
-    nun = 111
-    mamba = TestClz(114514)
-    ao = TestClz(810)
+        val methods = methodsRef.value ?: return null.also { Log.w(TAG, "方法数组是空指针捏：$className") }
+        Log.d(TAG, "拨弄到一个一个方法们：$className")
 
-    Log.i(TAG, "nun：$nun；mamba：${mamba!!.man}；ao：${ao.man}")
+        var clInit: jmethodID? = null
+
+        for (i in 0 until countRef.value) {
+            val nameRef = alloc<CPointerVar<ByteVar>>()
+            val signRef = alloc<CPointerVar<ByteVar>>()
+
+            // 我们不需要通用，故跳过本次
+            if (jvmtiInterface.GetMethodName!!(
+                    jvmti!!, methods[i], nameRef.ptr, signRef.ptr, null
+                ) != JVMTI_ERROR_NONE
+            ) continue
+
+            val name = nameRef.value?.toKString()
+            val signature = signRef.value?.toKString()
+            Log.d(TAG, "拨弄到非通用捏；名字：$name；签名：$signature")
+
+            if (name == "<clinit>" && signature == "()V") clInit = methods[i]
+
+            deallocate(nameRef.value)
+            deallocate(signRef.value)
+
+            if (clInit != null) break
+        }
+
+        val nothing = clInit == null
+        Log.d(TAG, "拨弄一个一个方法终了，无<clinit>吗：$nothing")
+
+        deallocate(methods)
+
+        if (nothing) return null
+
+        return envInterface.ToReflectedMethod!!(env, targetClass, clInit, JNI_TRUE.toUByte())!!
+    }
 }
 
-@CName("Java_me_earzuchan_sakiko_core_SakiNative_test2")
-fun test2(env: CPointer<JNIEnvVar>, jc: jclass) {
-    val TAG = "Test2"
+// TIPS：参数数检查不要丢给Native
+@CName("Java_me_earzuchan_sakiko_core_SakiNative_proInvoke")
+fun proInvoke(
+    env: CPointer<JNIEnvVar>, jc: jclass,
+    man: jobject, specSignJ: jstring,
+    manDeclareClz: jclass, isStaticJ: jboolean,
+    instance: jobject?, args: jobjectArray
+): jobject? = memScoped {
+    val TAG = "ProInvoke"
+    val jni = env.pointed.pointed!!
 
-    Log.i(TAG, "nun：$nun；mamba：${mamba!!.man}；ao：${ao.man}")
+    // 获取 methodID
+    val methodId = jni.FromReflectedMethod!!(env, man) ?: error("获取MethodId失败")
+    Log.d(TAG, "获取MethodId成功")
+
+    // 获取特签
+    val specSign = env.getStringBy(specSignJ) ?: error("拨弄到方法签名失败")
+    Log.d(TAG, "获取特签成功：$specSign")
+
+    // 解析特签里的参数类型
+    val (paramStr, returnStr) = specSign.split(',')
+    val paramShorts = paramStr.toList()
+    val returnTypeShort = returnStr[0]
+    Log.d(TAG, "特签，令人沉醉")
+
+    val isStatic = isStaticJ.k
+    Log.d(TAG, "静态：$isStatic；实例非空：${instance != null}")
+
+    // Unwrap参数并构建数组
+    val argCount = paramShorts.size
+    val cJArgs = allocArray<jvalue>(argCount) {
+        val arg = jni.GetObjectArrayElement!!(env, args, it)!!
+        Log.d(TAG,"取得第${it+1}")
+
+        env.unwrap(arg, this@allocArray, paramShorts[it])
+        Log.d(TAG,"Unwrap第${it+1}")
+
+        if (env.hasException()) error("妈咪何以")
+    }
+    Log.d(TAG, "Unwrap参数并构建数组成功")
+
+    val ret = alloc<jvalue>()
+
+    when (returnTypeShort) {
+        'L' -> ret.l = if (isStatic) jni.CallStaticObjectMethodA!!(env, manDeclareClz, methodId, cJArgs)
+        else jni.CallNonvirtualObjectMethodA!!(env, instance, manDeclareClz, methodId, cJArgs)
+
+        'Z' -> ret.z = if (isStatic) jni.CallStaticBooleanMethodA!!(env, manDeclareClz, methodId, cJArgs)
+        else jni.CallNonvirtualBooleanMethodA!!(env, instance, manDeclareClz, methodId, cJArgs)
+
+        'B' -> ret.b = if (isStatic) jni.CallStaticByteMethodA!!(env, manDeclareClz, methodId, cJArgs)
+        else jni.CallNonvirtualByteMethodA!!(env, instance, manDeclareClz, methodId, cJArgs)
+
+        'C' -> ret.c = if (isStatic) jni.CallStaticCharMethodA!!(env, manDeclareClz, methodId, cJArgs)
+        else jni.CallNonvirtualCharMethodA!!(env, instance, manDeclareClz, methodId, cJArgs)
+
+        'S' -> ret.s = if (isStatic) jni.CallStaticShortMethodA!!(env, manDeclareClz, methodId, cJArgs)
+        else jni.CallNonvirtualShortMethodA!!(env, instance, manDeclareClz, methodId, cJArgs)
+
+        'I' -> ret.i = if (isStatic) jni.CallStaticIntMethodA!!(env, manDeclareClz, methodId, cJArgs)
+        else jni.CallNonvirtualIntMethodA!!(env, instance, manDeclareClz, methodId, cJArgs)
+
+        'J' -> ret.j = if (isStatic) jni.CallStaticLongMethodA!!(env, manDeclareClz, methodId, cJArgs)
+        else jni.CallNonvirtualLongMethodA!!(env, instance, manDeclareClz, methodId, cJArgs)
+
+        'F' -> ret.f = if (isStatic) jni.CallStaticFloatMethodA!!(env, manDeclareClz, methodId, cJArgs)
+        else jni.CallNonvirtualFloatMethodA!!(env, instance, manDeclareClz, methodId, cJArgs)
+
+        'D' -> ret.d = if (isStatic) jni.CallStaticDoubleMethodA!!(env, manDeclareClz, methodId, cJArgs)
+        else jni.CallNonvirtualDoubleMethodA!!(env, instance, manDeclareClz, methodId, cJArgs)
+
+        'V' -> {
+            if (isStatic) jni.CallStaticVoidMethodA!!(env, manDeclareClz, methodId, cJArgs)
+            else jni.CallNonvirtualVoidMethodA!!(env, instance, manDeclareClz, methodId, cJArgs)
+            ret.l = null
+        }
+
+        else -> error("鹤移位")
+    }
+    Log.d(TAG, "就是这个！")
+
+    if (env.hasException()) {
+        val exception = jni.ExceptionOccurred!!(env)
+        jni.ExceptionClear!!(env)
+        Log.d(TAG, "有Java侧错误，懒得看了")
+        jni.Throw!!(env, exception)
+
+        return null // 既抛则不二抛
+    }
+    Log.d(TAG, "我挚爱的杰作")
+
+    Log.d(TAG, "行将Wrap并返回")
+    return env.wrap(ret, returnTypeShort)
 }
+
 
 val classFileBytes = hashMapOf<JObjectStorage, ByteArray>()
 
@@ -162,11 +292,11 @@ fun jniOnLoad(vm: CPointer<JavaVMVar>): jint {
     val TAG = "JniOnLoad"
 
     val env = vm.getEnv()
-    Log.i(TAG, "JNI正常，申请版本：1.6")
+    Log.i(TAG, "JNI正常，版本（1.6）不错，我的朋友")
 
     setupJvmti(vm)
-    Log.i(TAG, "JVMTI正常：1.2，已好一顿设")
-    if (env.getIfHasException()) throw IllegalStateException("补药啊")
+    Log.i(TAG, "JVMTI正常：1.2，完美")
+    if (env.hasException()) error("补药啊")
 
     return JNI_VERSION_1_6
 }
@@ -194,7 +324,7 @@ private fun setupJvmti(vm: CPointer<JavaVMVar>) = memScoped {
             jvmti,
             capabilities.ptr
         ) != JVMTI_ERROR_NONE
-    ) throw IllegalStateException("添加权能不成功")
+    ) error("添加权能不成功")
     Log.i(TAG, "创建并添加权能成功")
 
     val callbacks = cValue<jvmtiEventCallbacks> {
@@ -218,6 +348,6 @@ private fun setupJvmti(vm: CPointer<JavaVMVar>) = memScoped {
             callbacks.ptr,
             sizeOf<jvmtiEventCallbacks>().toInt()
         ) != JVMTI_ERROR_NONE
-    ) throw IllegalStateException("添加回调不成功")
+    ) error("添加回调不成功")
     Log.i(TAG, "创建并添加回调成功")
 }

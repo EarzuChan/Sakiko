@@ -9,7 +9,7 @@ import java.lang.reflect.Modifier
 
 object SLog {
 
-    private const val TAG: String = "Sakiko"
+    private const val TAG = "Sakiko"
 
     enum class Level {
         DEBUG, INFO, WARN, ERROR
@@ -17,6 +17,7 @@ object SLog {
 
     private var currentLevel: Level = Level.DEBUG
 
+    // CHECK：本API和YUKI不一样！
     fun setLevel(level: Level) {
         currentLevel = level
     }

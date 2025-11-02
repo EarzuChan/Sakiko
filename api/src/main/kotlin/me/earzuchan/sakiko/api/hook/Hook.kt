@@ -14,7 +14,10 @@ enum class SakikoHookPriority {
 }
 
 class HookHandle<TOKEN : Any>(val token: TOKEN) {
-    fun remove() = SakiBridge.requireInstance().asResolver().firstMethod { name = "unhook" }.invoke(this)
+    fun remove() = SakiBridge.requireInstance().asResolver().firstMethod {
+        name = "unhook"
+        superclass()
+    }.invoke(this)
 }
 
 // CHECK：访问性
@@ -46,7 +49,7 @@ class HookConfig {
     }
 
     fun check() {
-        if (replaceLambda != null && (beforeLambda != null || afterLambda != null)) throw IllegalStateException("Cannot use 'replace' with 'before' or 'after' hooks.")
+        if (replaceLambda != null && (beforeLambda != null || afterLambda != null)) error("Cannot use 'replace' with 'before' or 'after' hooks.")
     }
 }
 
@@ -85,7 +88,11 @@ inline fun MemberResolver<*, *>.hook(
     }
 
 // 也是暴露的API
-fun hookMember(man: Member, config: HookConfig, priority: SakikoHookPriority = SakikoHookPriority.DEFAULT): HookHandle<out Any> =
+fun hookMember(
+    man: Member,
+    config: HookConfig,
+    priority: SakikoHookPriority = SakikoHookPriority.DEFAULT
+): HookHandle<out Any> =
     SakiBridge.requireInstance().checkAndHook(man, config, priority)
 
 // CHECK：还需要一个Member.hook()吗？

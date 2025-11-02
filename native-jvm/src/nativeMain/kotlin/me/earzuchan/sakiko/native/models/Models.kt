@@ -15,7 +15,7 @@ class JObjectStorage(
     private val jniEnvInterface = jniEnv.pointed.pointed!!
 
     private var globalRef: jobject? = jniEnvInterface.NewGlobalRef!!(jniEnv, obj)
-        ?: throw IllegalStateException("创建全局引用失败")
+        ?: error("创建全局引用失败")
 
     fun peek(): jobject? = globalRef
 

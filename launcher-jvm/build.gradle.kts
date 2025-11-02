@@ -24,7 +24,6 @@ tasks.register<ShadowJar>("pack") {
 
     manifest {
         attributes["Premain-Class"] = "me.earzuchan.sakiko.launcher.LauncherEntry"
-        attributes["Can-Redefine-Classes"] = "true"
-        attributes["Can-Retransform-Classes"] = "true"
+        attributes["Agent-Class"] = "me.earzuchan.sakiko.launcher.LauncherEntry"
     }
 }

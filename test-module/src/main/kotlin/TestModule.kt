@@ -7,16 +7,16 @@ import me.earzuchan.sakiko.api.module.SakikoModule
 import me.earzuchan.sakiko.api.module.encase
 import me.earzuchan.sakiko.api.utils.SLog
 
-const val TAG = "TestModule"
+private const val TAG = "TestModule"
 
 // CHECK：其实也不必要全抄，有自己的一定特色挺好的，方便你我他？
 
 @ExposedSakikoModule
 class TestModule : SakikoModule {
     override fun onHook() = encase {
-        SLog.info("onHook")
+        SLog.info("onHook", TAG)
 
-        SLog.info("Hook method2")
+        SLog.info("Hook method2", TAG)
 
         "MethodsForTest".toClass().resolve().firstMethod {
             name = "method2"
