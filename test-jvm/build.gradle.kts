@@ -12,7 +12,7 @@ tasks.register<JavaExec>("perform") {
     group = "verification"
 
 
-    dependsOn(":launcher-jvm:pack", ":test-module:jar")
+    dependsOn(":core-jvm:pack", ":launcher-jvm:pack", ":test-module:jar")
 
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("me.earzuchan.sakiko.test.TestKt")

@@ -26,7 +26,8 @@ android {
 kotlin { jvmToolchain(21) }
 
 dependencies {
-    implementation(project(":api"))
+    // ↓权宜之计的开洞
+    api(project(":api"))
     // implementation(libs.lsplant)
     implementation(libs.aliuHook)
 }
