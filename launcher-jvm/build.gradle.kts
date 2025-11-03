@@ -6,7 +6,8 @@ plugins {
     alias(libs.plugins.kotlinJvm)
 }
 dependencies {
-    implementation(project(":core-jvm"))
+    // implementation(project(":core-jvm")) 应该独立加载以减少对应用程序类路径的干扰
+    // CHECK：要不要引入
 }
 
 kotlin { jvmToolchain(21) }
