@@ -24,9 +24,11 @@ object LauncherEntry {
 
         val coreClassLoader = CoreClassLoader(coreLibUrl)
 
-        // TODO：初始化core，拿取relay方法；创建、加载并设置（反射并设置字段）好接力类
+        // 初始化core
+        val coreClz = coreClassLoader.loadClass("me.earzuchan.sakiko.core.CoreKt")
+        coreClz.getDeclaredMethod("initCore").invoke(null, true)
 
-        // TODO：从参数加载模块，反射查找入口类并创建实例，环境准备好再执行模块实例生命周期方法
+        // TODO：从参数加载模块，反射查找入口类（特定注解）并创建实例，环境准备好再执行模块实例的生命周期方法
     }
 }
 

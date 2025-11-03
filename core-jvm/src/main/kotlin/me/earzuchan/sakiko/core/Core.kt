@@ -13,6 +13,7 @@ import me.earzuchan.sakiko.core.utils.ByteCodeStorage
 import me.earzuchan.sakiko.core.utils.ByteCodeVerifier
 import me.earzuchan.sakiko.core.utils.ByteCodeWeaver.weave
 import me.earzuchan.sakiko.core.utils.NativeUtils
+import me.earzuchan.sakiko.core.utils.RelayClassUtils
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Member
@@ -36,28 +37,38 @@ internal object SakiNative {
     external fun getClInitOrNull(targetClass: Class<*>): Constructor<*>?
 
     @JvmStatic
+    external fun loadClassToBootstrap(clzName: String, clzBytes: ByteArray): Class<*>
+
+    @JvmStatic
     external fun proInvoke(
-        man: Member,
-        sign: String,
-        clz: Class<*>,
-        isStatic: Boolean,
-        instance: Any?,
-        args: Array<*>
+        man: Member, sign: String,
+        clz: Class<*>, isStatic: Boolean,
+        instance: Any?, args: Array<*>
     ): Any?
 }
 
-// 开洞方法
-fun initCore() = SakiBridgeImpl.init()
+// --开洞方法--
+
+fun initCore() = initCore(false)
+
+fun setCoreRelayBlazzName(relayBlazz: String) {
+    SakiBridgeImpl.relayBlazzName = relayBlazz
+}
+
+fun initCore(useBootstrapRelayClass: Boolean) {
+    SakiBridgeImpl.run {
+        init()
+
+        if (useBootstrapRelayClass) relayBlazzName = RelayClassUtils.setupBootstrapRelayClass()
+    }
+}
 
 fun initCore(relayBlazz: String) {
     SakiBridgeImpl.run {
         init()
+
         relayBlazzName = relayBlazz
     }
-}
-
-fun setCoreRelayBlazzName(relayBlazz: String) {
-    SakiBridgeImpl.relayBlazzName = relayBlazz
 }
 
 internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {

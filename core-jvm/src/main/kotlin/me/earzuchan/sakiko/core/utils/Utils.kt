@@ -1,6 +1,8 @@
 package me.earzuchan.sakiko.core.utils
 
+import com.highcapable.kavaref.KavaRef.Companion.resolve
 import me.earzuchan.sakiko.api.utils.SLog
+import me.earzuchan.sakiko.core.SakiBridgeImpl
 import me.earzuchan.sakiko.core.SakiNative
 import org.objectweb.asm.*
 import org.objectweb.asm.util.CheckClassAdapter
@@ -18,6 +20,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.Any
 import kotlin.Array
@@ -32,7 +35,11 @@ import kotlin.RuntimeException
 import kotlin.String
 import kotlin.Suppress
 import kotlin.UnsupportedOperationException
+import kotlin.apply
+import kotlin.arrayOf
 import kotlin.require
+import kotlin.to
+
 
 object NativeUtils {
     private val osName = System.getProperty("os.name").lowercase()
@@ -356,5 +363,166 @@ object MambaUtils {
         // 强制准备类
         Reference.reachabilityFence(targetClass.declaredMethods)
         return SakiNative.getClInitOrNull(targetClass)
+    }
+}
+
+// EXPORTED
+object RelayClassUtils {
+    // 根据UUID随机生成
+    fun generateRelayClassName(): String =
+        "saki.R" + UUID.randomUUID().toString().split('-').take(2).joinToString()
+
+    // 生成接力类字节码
+    fun generateRelayClassBytes(className: String): ByteArray {
+        /* public class CLZ_NAME { TIPS：抽象是为了防止实例化？
+           private CLZ_NAME () { }
+           public static java.lang.reflect.Method coreRelayMethod; // set later
+           public static Object[] relay(Object[] args) throws Throwable {
+             try {
+               return (Object[]) coreRelayMethod.invoke(null, new Object[]{args});
+             } catch (InvocationTargetException e) {
+               throw e.getTargetException();
+             }
+           }
+         }*/
+
+        val internalClassName = className.replace('.', '/')
+        val cw = ClassWriter(ClassWriter.COMPUTE_MAXS or ClassWriter.COMPUTE_FRAMES)
+
+        cw.visit(
+            Opcodes.V11, Opcodes.ACC_PUBLIC,
+            internalClassName, null,
+            "java/lang/Object", null
+        )
+
+        cw.visitSource(null, null)
+
+        val relayMethodFieldName = "coreRelayMethod"
+
+        cw.visitField(
+            Opcodes.ACC_PUBLIC or Opcodes.ACC_STATIC,
+            relayMethodFieldName, "Ljava/lang/reflect/Method;",
+            null, null
+        ).visitEnd()
+
+        val mv = cw.visitMethod(
+            Opcodes.ACC_PUBLIC or Opcodes.ACC_STATIC, "relay",
+            "([Ljava/lang/Object;)[Ljava/lang/Object;",
+            null, arrayOf("java/lang/Throwable")
+        )
+
+        mv.visitCode()
+
+        // public static relay([Ljava/lang/Object;)[Ljava/lang/Object; throws java/lang/Throwable
+        val l0 = Label()
+        val l1 = Label()
+        val l2 = Label()
+        val l3 = Label()
+
+        // TRYCATCHBLOCK L0 L1 L2 java/lang/reflect/InvocationTargetException
+        mv.visitTryCatchBlock(l0, l1, l2, "java/lang/reflect/InvocationTargetException")
+
+        // L0
+        mv.visitLabel(l0)
+        mv.visitLineNumber(1, l0)
+
+        // GETSTATIC className.coreRelayMethod : Ljava/lang/reflect/Method;
+        mv.visitFieldInsn(Opcodes.GETSTATIC, internalClassName, relayMethodFieldName, "Ljava/lang/reflect/Method;")
+
+        // ACONST_NULL
+        mv.visitInsn(Opcodes.ACONST_NULL)
+
+        // ICONST_1
+        mv.visitInsn(Opcodes.ICONST_1)
+
+        // ANEWARRAY java/lang/Object
+        mv.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object")
+
+        // DUP
+        mv.visitInsn(Opcodes.DUP)
+
+        // ICONST_0
+        mv.visitInsn(Opcodes.ICONST_0)
+
+        // ALOAD 0
+        mv.visitVarInsn(Opcodes.ALOAD, 0)
+
+        // AASTORE
+        mv.visitInsn(Opcodes.AASTORE)
+
+        // INVOKEVIRTUAL java/lang/reflect/Method.invoke
+        mv.visitMethodInsn(
+            Opcodes.INVOKEVIRTUAL, "java/lang/reflect/Method",
+            "invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;",
+            false
+        )
+
+        // CHECKCAST [Ljava/lang/Object;
+        mv.visitTypeInsn(Opcodes.CHECKCAST, "[Ljava/lang/Object;")
+
+        // L1
+        mv.visitLabel(l1)
+
+        // ARETURN
+        mv.visitInsn(Opcodes.ARETURN)
+
+        // L2
+        mv.visitLabel(l2)
+
+        // ASTORE 1
+        mv.visitVarInsn(Opcodes.ASTORE, 1)
+
+        // L3
+        mv.visitLabel(l3)
+
+        // ALOAD 1
+        mv.visitVarInsn(Opcodes.ALOAD, 1)
+
+        // INVOKEVIRTUAL java/lang/reflect/InvocationTargetException.getTargetException
+        mv.visitMethodInsn(
+            Opcodes.INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException",
+            "getTargetException", "()Ljava/lang/Throwable;", false
+        )
+
+        // ATHROW
+        mv.visitInsn(Opcodes.ATHROW)
+
+        mv.visitMaxs(6, 2)
+        mv.visitEnd()
+
+        // private constructor
+        val mv2 = cw.visitMethod(
+            Opcodes.ACC_PRIVATE, "<init>",
+            "()V", null, null
+        )
+
+        mv2.visitCode()
+        mv2.visitVarInsn(Opcodes.ALOAD, 0)
+        mv2.visitMethodInsn(
+            Opcodes.INVOKESPECIAL, "java/lang/Object",
+            "<init>", "()V", false
+        )
+        mv2.visitInsn(Opcodes.RETURN)
+        mv2.visitMaxs(1, 1)
+        mv2.visitEnd()
+
+        cw.visitEnd()
+
+        return cw.toByteArray()
+    }
+
+    // 生成、装入并设置接力类
+    fun setupBootstrapRelayClass(): String {
+        val className = generateRelayClassName()
+        val classBytes = generateRelayClassBytes(className)
+
+        ByteCodeVerifier.verify(classBytes)
+
+        val clz = SakiNative.loadClassToBootstrap(className, classBytes)
+
+        clz.resolve().firstField { name = "coreRelayMethod" }
+            .set(SakiBridgeImpl::class.resolve().firstMethod { name = "relay" }.self)
+
+        return className
     }
 }
