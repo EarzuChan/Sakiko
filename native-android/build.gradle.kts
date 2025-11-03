@@ -14,14 +14,4 @@ kotlin {
             }
         }
     }
-
-    /*sourceSets {
-        commonMain {}
-
-        nativeMain {dependsOn(commonMain.get())}
-
-        arrayOf(androidNativeArm32Main, androidNativeArm64Main, androidNativeX64Main).forEach {
-            it.get().dependsOn(nativeMain.get())
-        }
-    }*/
 }

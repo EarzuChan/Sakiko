@@ -34,7 +34,7 @@ val buildAndCopyNativeLibs = tasks.register("buildAndCopyNativeLibs") {
     description = "Build native libraries and copy them"
 
     val libName = "sakiko"
-    val nativeProject = project(":native")
+    val nativeProject = project(":native-android")
 
     dependsOn(nativeProject.tasks.named("linkReleaseSharedAndroidNativeArm32"))
     dependsOn(nativeProject.tasks.named("linkReleaseSharedAndroidNativeArm64"))
