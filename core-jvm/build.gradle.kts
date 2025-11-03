@@ -20,7 +20,7 @@ tasks.jar { enabled = false }
 tasks.register<ShadowJar>("pack") {
     group = "build"
 
-    // 打包项目主源集
+    // 打包主源集
     from(sourceSets.main.get().output)
 
     // 打包依赖项

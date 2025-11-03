@@ -331,7 +331,7 @@ private class ForHookClassStaticInitializer {
 
 // 主测试入口
 fun main() {
-    SakiBridgeImpl.init()
+    initCore(true)
 
     test(::directMethod)
     test(::virtualMethod)
@@ -353,7 +353,7 @@ fun test(testFun: () -> Unit) {
     SLog.info("TESTING：$testFun", TAG)
 
     runCatching(testFun)
-        .onFailure { SLog.info("FAILED：$testFun", TAG) }
+        .onFailure { SLog.info("FAILED：$testFun\n${it.stackTraceToString()}", TAG) }
         .onSuccess { SLog.info("PASSED：$testFun", TAG) }
 }
 

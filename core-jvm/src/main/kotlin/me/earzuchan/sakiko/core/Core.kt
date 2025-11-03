@@ -52,14 +52,14 @@ internal object SakiNative {
 fun initCore() = initCore(false)
 
 fun setCoreRelayBlazzName(relayBlazz: String) {
-    SakiBridgeImpl.relayBlazzName = relayBlazz
+    SakiBridgeImpl.setRelayBlazzName(relayBlazz)
 }
 
 fun initCore(useBootstrapRelayClass: Boolean) {
     SakiBridgeImpl.run {
         init()
 
-        if (useBootstrapRelayClass) relayBlazzName = RelayClassUtils.setupBootstrapRelayClass()
+        if (useBootstrapRelayClass) setRelayBlazzName(RelayClassUtils.setupBootstrapRelayClass())
     }
 }
 
@@ -67,7 +67,7 @@ fun initCore(relayBlazz: String) {
     SakiBridgeImpl.run {
         init()
 
-        relayBlazzName = relayBlazz
+        setRelayBlazzName(relayBlazz)
     }
 }
 
@@ -152,7 +152,11 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
 
     // ==================== 方法处理 ====================
 
-    var relayBlazzName = "me/earzuchan/sakiko/core/SakiBridgeImpl"
+    private var relayBlazzName = "me/earzuchan/sakiko/core/SakiBridgeImpl"
+
+    fun setRelayBlazzName(relayBlazz: String) {
+        SakiBridgeImpl.relayBlazzName = relayBlazz.replace('.', '/')
+    }
 
     private fun Member.process(hookId: Long) {
         val TAG = "SBI_MemberProcess"

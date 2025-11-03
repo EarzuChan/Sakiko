@@ -19,17 +19,20 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
+
+    // buildFeatures { prefab = true }
 }
 
 kotlin { jvmToolchain(21) }
 
 dependencies {
     implementation(project(":api"))
+    // implementation(libs.lsplant)
+    implementation(libs.aliuHook)
 }
 
-// TODO：打包
-
-val buildAndCopyNativeLibs = tasks.register("buildAndCopyNativeLibs") {
+// TODO：等恢复自己写后，打包
+/*val buildAndCopyNativeLibs = tasks.register("buildAndCopyNativeLibs") {
     group = "build"
     description = "Build native libraries and copy them"
 
@@ -80,4 +83,4 @@ val buildAndCopyNativeLibs = tasks.register("buildAndCopyNativeLibs") {
         // 删除 releaseShared 中间产物
         nativeProject.file("build/bin").deleteRecursively()
     }
-}
+}*/

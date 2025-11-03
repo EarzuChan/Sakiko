@@ -11,11 +11,14 @@ kotlinxCoroutinesCore = "1.10.2"
 lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
 composeBom = "2025.10.01"
-junit = "6.0.0"
+junit = "6.0.1"
 shadowJar = "8.1.1"
 kavaRefCore = "1.0.2"
 kavaRefExt = "1.0.1"
 asm = "9.9"
+classGraph = "4.8.184"
+lsplant = "6.4"
+aliuHook = "1.1.4"
 
 [libraries]
 kotlinPoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinPoet" }
@@ -25,9 +28,12 @@ asmUtil = { module = "org.ow2.asm:asm-util", version.ref = "asm" }
 kavaRefCore = { module = "com.highcapable.kavaref:kavaref-core", version.ref = "kavaRefCore" }
 kavaRefExt = { module = "com.highcapable.kavaref:kavaref-extension", version.ref = "kavaRefExt" }
 coreKtx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+classGraph = { module = "io.github.classgraph:classgraph", version.ref = "classGraph" }
 kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 lifecycleRuntimeKtx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 activityCompose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+lsplant = { module = "org.lsposed.lsplant:lsplant", version.ref = "lsplant" }
+aliuHook = { module = "com.aliucord:Aliuhook", version.ref = "aliuHook" }
 composeBom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 composeMaterial3 = { group = "androidx.compose.material3", name = "material3" }
 composeUi-toolingPreview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }

@@ -1,9 +1,5 @@
-plugins {
-    alias(libs.plugins.kotlinJvm)
-}
+plugins { alias(libs.plugins.kotlinJvm)}
 
-dependencies {
-    implementation(libs.junit)
-}
+dependencies {}
 
 kotlin { jvmToolchain(21) }

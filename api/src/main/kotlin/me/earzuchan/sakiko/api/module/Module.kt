@@ -1,21 +1,30 @@
 package me.earzuchan.sakiko.api.module
 
-import com.highcapable.kavaref.resolver.MethodResolver
+import me.earzuchan.sakiko.api.utils.SLog
 import com.highcapable.kavaref.extension.toClass as kToClz
 
-interface SakikoModule {
+interface SakikoModuleEntry {
     fun onInit() {}
 
     fun onHook()
 }
 
-// TODO
-class SakikoContext {
-    val appClassLoader: ClassLoader = TODO()
+val sakiCtxLocal = ThreadLocal<SakikoContext>()
 
-    fun String.toClass(classLoader: ClassLoader = appClassLoader) = kToClz(classLoader)
+// TODO
+class SakikoContext(val appClassLoader: ClassLoader) {
+    companion object {
+        private const val TAG = "SakikoContext"
+    }
+
+    fun String.toClass(classLoader: ClassLoader = appClassLoader): Class<Any> {
+        // SLog.debug("成功获得AppClassLoader：$classLoader", TAG)
+
+        return kToClz(classLoader)
+    }
 }
 
-fun SakikoModule.encase(initiate: SakikoContext.() -> Unit) {
-    TODO()
+fun SakikoModuleEntry.encase(initiate: SakikoContext.() -> Unit) {
+    val sakiCtx = sakiCtxLocal.get() ?: error("没有上下文")
+    sakiCtx.initiate()
 }

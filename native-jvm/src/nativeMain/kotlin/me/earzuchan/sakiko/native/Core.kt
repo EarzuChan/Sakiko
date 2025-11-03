@@ -22,10 +22,13 @@ import me.earzuchan.sakiko.native.utils.JniUtils.wrap
 import me.earzuchan.sakiko.native.utils.Log
 import kotlin.experimental.ExperimentalNativeApi
 
+var jvmti: CPointer<jvmtiEnvVar>? = null
+
 val transforming = SynchronizedObject()
 val mapManipulating = SynchronizedObject()
 
-// 能用
+// JNI方法们
+
 @CName("Java_me_earzuchan_sakiko_core_SakiNative_getClassByteCode")
 fun getClassByteCode(env: CPointer<JNIEnvVar>, jc: jclass, targetClass: jclass?): jobject {
     if (targetClass == null) throw IllegalArgumentException("目标类为null")
@@ -73,7 +76,6 @@ fun getClassByteCode(env: CPointer<JNIEnvVar>, jc: jclass, targetClass: jclass?)
     return env.toJByteArray(byteCode)
 }
 
-// 能用
 @CName("Java_me_earzuchan_sakiko_core_SakiNative_redefineClass")
 fun redefineClass(
     env: CPointer<JNIEnvVar>, jc: jclass,
@@ -81,6 +83,7 @@ fun redefineClass(
     shouldBypassVerification: jboolean // 这个先不理
 ) {
     val TAG = "RedefineClass"
+
     val byteCode = env.getByteArrayBy(byteCodeJ)
     Log.d(TAG, "这位置不错，大小：${byteCode.size}")
     check(!env.hasException()) { "JNI异常发生" }
@@ -202,10 +205,10 @@ fun proInvoke(
     val argCount = paramShorts.size
     val cJArgs = allocArray<jvalue>(argCount) {
         val arg = jni.GetObjectArrayElement!!(env, args, it)!!
-        Log.d(TAG,"取得第${it+1}")
+        Log.d(TAG, "取得第${it + 1}")
 
         env.unwrap(arg, this@allocArray, paramShorts[it])
-        Log.d(TAG,"Unwrap第${it+1}")
+        Log.d(TAG, "Unwrap第${it + 1}")
 
         if (env.hasException()) error("妈咪何以")
     }
@@ -265,6 +268,32 @@ fun proInvoke(
     return env.wrap(ret, returnTypeShort)
 }
 
+@CName("Java_me_earzuchan_sakiko_core_SakiNative_loadClassToBootstrap")
+fun loadClassToBootstrap(env: CPointer<JNIEnvVar>, jc: jclass, clzNameJ: jstring, byteCodeJ: jbyteArray): jclass =
+    memScoped {
+        val TAG = "LoadClassToBootstrap"
+
+        val jni = env.pointed.pointed!!
+
+        val byteCode = env.getByteArrayBy(byteCodeJ)
+        Log.d(TAG, "这位置不错，大小：${byteCode.size}")
+        check(!env.hasException()) { "JNI异常发生" }
+
+        val clzName = (env.getStringBy(clzNameJ) ?: error("取得要载入的类名失败")).also {
+            Log.d(TAG, "要载入：$it")
+        }.replace('.', '/')
+
+        val clz = byteCode.usePinned { pinned ->
+            jni.DefineClass!!(env, clzName.cstr.ptr, null, pinned.addressOf(0).reinterpret(), byteCode.size)
+        } ?: error("载入失败")
+        Log.d(TAG, "令人沉醉！")
+
+        check(!env.hasException()) { "JNI异常发生" }
+
+        clz
+    }
+
+// 内部用到的方法们
 
 val classFileBytes = hashMapOf<JObjectStorage, ByteArray>()
 
@@ -300,8 +329,6 @@ fun jniOnLoad(vm: CPointer<JavaVMVar>): jint {
 
     return JNI_VERSION_1_6
 }
-
-var jvmti: CPointer<jvmtiEnvVar>? = null
 
 private fun setupJvmti(vm: CPointer<JavaVMVar>) = memScoped {
     val TAG = "SetupJvmti"

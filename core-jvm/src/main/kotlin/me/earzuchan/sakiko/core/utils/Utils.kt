@@ -368,9 +368,11 @@ object MambaUtils {
 
 // EXPORTED
 object RelayClassUtils {
+    private const val TAG = "RelayClassUtils"
+
     // 根据UUID随机生成
     fun generateRelayClassName(): String =
-        "saki.R" + UUID.randomUUID().toString().split('-').take(2).joinToString()
+        "saki.Re" + UUID.randomUUID().toString().split('-').take(2).joinToString("_")
 
     // 生成接力类字节码
     fun generateRelayClassBytes(className: String): ByteArray {
@@ -515,13 +517,14 @@ object RelayClassUtils {
     fun setupBootstrapRelayClass(): String {
         val className = generateRelayClassName()
         val classBytes = generateRelayClassBytes(className)
-
         ByteCodeVerifier.verify(classBytes)
+        SLog.debug("生成并验证接力类成功：$className", TAG)
 
         val clz = SakiNative.loadClassToBootstrap(className, classBytes)
 
         clz.resolve().firstField { name = "coreRelayMethod" }
             .set(SakiBridgeImpl::class.resolve().firstMethod { name = "relay" }.self)
+        SLog.debug("载入和设置接力类成功：$className", TAG)
 
         return className
     }

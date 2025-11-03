@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
-val appId = "${group}.test"
+val appId = "$group.test"
 val verName = version as String
 
 android {
