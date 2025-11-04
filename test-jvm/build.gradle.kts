@@ -11,7 +11,6 @@ dependencies {
 tasks.register<JavaExec>("perform") {
     group = "verification"
 
-
     dependsOn(":core-jvm:pack", ":launcher-jvm:pack", ":test-module:jar")
 
     classpath = sourceSets.main.get().runtimeClasspath
@@ -28,7 +27,7 @@ tasks.register<JavaExec>("perform") {
 
         val myArgs = listOf("-noverify", "-javaagent:$launcherJar=$testModuleJar")
 
-        println("[INFO] SakikoGradle > Jvm args: ${myArgs.joinToString()}")
+        println("[INFO] SakikoGradle > Jvm 参数：${myArgs.joinToString("，")}}")
         jvmArgs(myArgs)
     }
 }

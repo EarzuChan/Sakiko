@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.androidLibrary)
 }
 
+// CHECK：安卓如果要有启动器，要不要直接集成在Core
+
 android {
     namespace = group as String
     compileSdk = 36
@@ -26,7 +28,7 @@ android {
 kotlin { jvmToolchain(21) }
 
 dependencies {
-    // ↓权宜之计的开洞
+    // ↓权宜之计的开洞，暴露给依赖方
     api(project(":api"))
     // implementation(libs.lsplant)
     implementation(libs.aliuHook)

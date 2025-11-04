@@ -1,6 +1,8 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+// TIPS：这是一个JavaAgent
+
 plugins {
     alias(libs.plugins.shadowJar)
     alias(libs.plugins.kotlinJvm)
