@@ -21,13 +21,14 @@ include(":api")
 include(":core-jvm")
 include(":native-jvm")
 include(":launcher-jvm")
+include(":test-jvm")
 
 include(":core-android")
 include(":native-android")
+include(":launcher-android")
+include(":test-android")
 
 include(":test")
 include(":test-module")
-include(":test-jvm")
-include(":test-android")
 
 rootProject.name = "Sakiko"

@@ -27,7 +27,7 @@ tasks.register<ShadowJar>("pack") {
     configurations = listOf(project.configurations.runtimeClasspath.get())
 
     manifest {
-        attributes["Premain-Class"] = "me.earzuchan.sakiko.launcher.LauncherEntry"
-        attributes["Agent-Class"] = "me.earzuchan.sakiko.launcher.LauncherEntry"
+        attributes["Premain-Class"] = "me.earzuchan.sakiko.launcher.Launcher"
+        attributes["Agent-Class"] = "me.earzuchan.sakiko.launcher.Launcher"
     }
 }

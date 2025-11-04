@@ -3,10 +3,10 @@ plugins {
     alias(libs.plugins.androidLibrary)
 }
 
-// CHECK：安卓如果要有启动器，要不要直接集成在Core
+val appId = "$group.core"
 
 android {
-    namespace = group as String
+    namespace = appId
     compileSdk = 36
 
     defaultConfig {
@@ -15,22 +15,18 @@ android {
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64") }
     }
 
-    sourceSets { getByName("main") { jniLibs.srcDirs("src/main/jniLibs") } }
+    // sourceSets { getByName("main") { jniLibs.srcDirs("src/main/jniLibs") } }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-
-    // buildFeatures { prefab = true }
 }
 
 kotlin { jvmToolchain(21) }
 
 dependencies {
-    // ↓权宜之计的开洞，暴露给依赖方
-    api(project(":api"))
-    // implementation(libs.lsplant)
+    implementation(project(":api"))
     implementation(libs.aliuHook)
 }
 

@@ -11,8 +11,8 @@ private fun logd(tag: String, msg: String) = println("[DEBUG] $tag > $msg")
 private fun logw(tag: String, msg: String) = println("[WARN] $tag > $msg")
 private fun loge(tag: String, msg: String) = println("[ERROR] $tag > $msg")
 
-object LauncherEntry {
-    private const val TAG = "LauncherEntry"
+object Launcher {
+    private const val TAG = "Launcher"
 
     private val modules = mutableListOf<Any>()
 
@@ -25,8 +25,6 @@ object LauncherEntry {
     fun init(args: List<String>) {
         // 取得AppClassLoader
         val appClassLoader = ClassLoader.getSystemClassLoader()
-        // val clz1 = appClassLoader.loadClass("me.earzuchan.sakiko.test.StaticMethods")
-        // logi(TAG, "成功获得AppClassLoader：$appClassLoader")
 
         // 加载核心库
         val coreLibPath = System.getenv("SAKICORE") ?: error("没有设置核心库路径")
@@ -106,7 +104,7 @@ object LauncherEntry {
 }
 
 // TIPS：FOR TEST ONLY；记得添加`SAKICORE`环境变量
-fun main(args: Array<String>) = LauncherEntry.init(args.toList())
+fun main(args: Array<String>) = Launcher.init(args.toList())
 
 class CoreClassLoader(coreLibUrl: URL) : URLClassLoader(arrayOf(coreLibUrl), null)
 
