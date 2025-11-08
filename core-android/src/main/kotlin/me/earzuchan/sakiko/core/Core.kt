@@ -26,6 +26,7 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
     fun init() = setInstance(this)
 
     override fun coreHook(man: Member, config: HookConfig, priority: SakikoHookPriority): HookHandle<TokenImpl> {
+        // 如果修不好它的排列问题，就得玩儿套娃了
         val unhook = XposedBridge.hookMethod(man, object : XC_MethodHook(priority.xp) {
             private val isReplace = config.replaceLambda != null
 

@@ -31,4 +31,6 @@ include(":test-android")
 include(":test")
 include(":test-module")
 
+include(":plugin")
+
 rootProject.name = "Sakiko"

@@ -25,7 +25,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro") // TODO：完善混淆规则
 
             packaging {
                 resources {
@@ -63,6 +63,8 @@ dependencies {
     implementation(project(":launcher-android"))
 
     implementation(project(":test"))
+}
 
-    implementation(project(":test-module")) // TODO：应该采用独立DEX加载形式
+tasks.named("preBuild"){
+    dependsOn(":test-module:buildDex")
 }

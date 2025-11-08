@@ -17,7 +17,7 @@ kotlin { jvmToolchain(21) }
 
 tasks.jar { enabled = false }
 
-tasks.register<ShadowJar>("pack") {
+tasks.register<ShadowJar>("packageLauncher") {
     group = "build"
 
     // 打包主源集

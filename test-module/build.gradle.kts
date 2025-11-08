@@ -6,11 +6,11 @@ dependencies { compileOnly(project(":api")) }
 
 kotlin { jvmToolchain(21) }
 
-// IMPROVE：太糙了
-tasks.register<Exec>("packDex") {
+// REFACTOR：移植到Sakiko插件中
+tasks.register<Exec>("buildDex") {
     dependsOn("build")
 
-    val androidHome = System.getenv("ANDROID_HOME") ?: readLocalProperty("sdk.dir") ?: error("找不到安卓SDK")
+    val androidHome = readLocalProperty("sdk.dir") ?: error("找不到安卓SDK")
 
     val buildToolsVersion = "36.0.0"
     val d8ToolName = if (org.gradle.internal.os.OperatingSystem.current().isWindows) "d8.bat" else "d8"

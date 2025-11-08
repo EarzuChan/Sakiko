@@ -277,6 +277,7 @@ fun multipleHooksOnSameMethod() {
 
     assertEquals(3, invokable.invoke(1, 2))
 
+    // 原来是在Before，可这是违反Xposed设计的
     val handle1 = method.hook(SakikoHookPriority.LOWEST) {
         after {
             SLog.debug("应该1")
@@ -302,106 +303,128 @@ fun multipleHooksOnSameMethod() {
     assertEquals(3, invokable.invoke(1, 2))
 }
 
-// 应该再测试一下犯些禁忌，比如Hook内部类和不允许的类
+// TODO：应该再测试一下犯些禁忌，比如Hook内部类和不允许的类
 
-// TODO：唯一就是安卓上顺序不对
+// CHECK：唯一就是安卓上顺序不对，但原生LSP的Yuki行为良好，是AliuHook的问题罢
 fun multiAndPriority() {
     val manClass = MultiAndPriority::class.resolve()
 
     val whatHeCanSayMethod = manClass.firstMethod { name = "whatHeCanSay" }
     val kobeMethod = manClass.firstMethod { name = "kobe" }
 
-    // WCS RESULT：123-321
+    // WCS RESULT：123dup321
 
+    val strB1 = StringBuilder()
     whatHeCanSayMethod.hook {
         before {
             SLog.debug("bef wc 1")
+            strB1.append("1")
         }
 
         after {
             SLog.debug("aft wc 1")
+            strB1.append("1")
         }
     }
 
     whatHeCanSayMethod.hook {
         before {
             SLog.debug("bef wc 2")
+            strB1.append("2")
         }
 
         after {
             SLog.debug("aft wc 2")
+            strB1.append("2")
         }
     }
 
     whatHeCanSayMethod.hook {
         before {
             SLog.debug("bef wc 3")
+            strB1.append("3")
         }
 
         before {
-            SLog.debug("bef wc 3 - dup") // 会覆盖上一个
+            SLog.debug("bef wc 3dup") // 会覆盖上一个
+            strB1.append("3dup")
         }
 
         after {
             SLog.debug("aft wc 3")
+            strB1.append("3")
         }
     }
 
-    // K RESULT：h h2 d l l2-l2 l d h2 h
+    // K RESULT：hh2dll2l2ldh2h
 
+    val strB2 = StringBuilder()
     kobeMethod.hook(SakikoHookPriority.LOWEST) {
         before {
             SLog.debug("bef k l")
+            strB2.append("l")
         }
 
         after {
             SLog.debug("aft k l")
+            strB2.append("l")
         }
     }
 
     kobeMethod.hook {
         before {
             SLog.debug("bef k d")
+            strB2.append("d")
         }
 
         after {
             SLog.debug("aft k d")
+            strB2.append("d")
         }
     }
 
     kobeMethod.hook(SakikoHookPriority.LOWEST) {
         before {
             SLog.debug("bef k l2")
+            strB2.append("l2")
         }
 
         after {
             SLog.debug("aft k l2")
+            strB2.append("l2")
         }
     }
 
     kobeMethod.hook(SakikoHookPriority.HIGHEST) {
         before {
             SLog.debug("bef k h")
+            strB2.append("h")
         }
 
         after {
             SLog.debug("aft k h")
+            strB2.append("h")
         }
     }
 
     kobeMethod.hook(SakikoHookPriority.HIGHEST) {
         before {
             SLog.debug("bef k h2")
+            strB2.append("h2")
         }
 
         after {
             SLog.debug("aft k h2")
+            strB2.append("h2")
         }
     }
 
     val man = MultiAndPriority()
     man.whatHeCanSay()
     man.kobe()
+
+    assertEquals("123dup321", strB1.toString())
+    assertEquals("hh2dll2l2ldh2h", strB2.toString())
 }
 
 // TODO：Call Ori

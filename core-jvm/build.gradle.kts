@@ -17,7 +17,7 @@ dependencies {
 
 tasks.jar { enabled = false }
 
-tasks.register<ShadowJar>("pack") {
+tasks.register<ShadowJar>("packageCore") {
     group = "build"
 
     // 打包主源集
@@ -27,18 +27,7 @@ tasks.register<ShadowJar>("pack") {
     configurations = listOf(project.configurations.runtimeClasspath.get())
 }
 
-// TODO：转移到模块中
-tasks.register<JavaExec>("runTest") {
-    group = "verification"
-
-    classpath = sourceSets.main.get().runtimeClasspath + sourceSets.test.get().runtimeClasspath
-
-    mainClass.set("me.earzuchan.sakiko.core.TestKt")
-
-    val myArgs = listOf("-noverify")
-    println("[INFO] SakikoGradle > Jvm 参数：${myArgs.joinToString("，")}")
-    jvmArgs(myArgs)
-}
+// TODO：平台测试基本转移到模块中，但是ClInit还没有提取公共
 
 // TIPS：mac的库需要在mac上构建
 val buildAndCopyNativeLibs by tasks.registering {
