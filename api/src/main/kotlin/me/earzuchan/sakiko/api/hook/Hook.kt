@@ -20,7 +20,7 @@ class HookHandle<TOKEN : Any>(val token: TOKEN) {
     }.invoke(this)
 }
 
-// CHECK：访问性
+// CHECK：访问性：应该阻止用户对Lambda的直接访问
 class HookConfig {
     var beforeLambda: (HookParam.() -> Unit)? = null
     var afterLambda: (HookParam.() -> Unit)? = null
@@ -49,7 +49,7 @@ class HookConfig {
     }
 
     fun check() {
-        if (replaceLambda != null && (beforeLambda != null || afterLambda != null)) error("Cannot use 'replace' with 'before' or 'after' hooks.")
+        if (replaceLambda != null && (beforeLambda != null || afterLambda != null)) error("不可把替换和执行前/后同时使用")
     }
 }
 
@@ -84,7 +84,7 @@ inline fun MemberResolver<*, *>.hook(
             hookMember(man, config, priority)
         }
 
-        else -> error("This type [$this] not support to hook, supported are Constructors and Methods")
+        else -> error("不支持Hook$this，您只能Hook构造器或者一般方法")
     }
 
 // 也是暴露的API

@@ -131,7 +131,6 @@ fun getClInitOrNull(env: CPointer<JNIEnvVar>, jc: jclass, targetClass: jclass): 
         val countRef = alloc<IntVar>()
         val methodsRef = alloc<CPointerVar<jmethodIDVar>>() // CHECK：也许是得换成cArray或者是cValues？
 
-        // CHECK：何意为！这不该失败
         val rc = jvmtiInterface.GetClassMethods!!(jvmti, targetClass, countRef.ptr, methodsRef.ptr)
         if (rc != JVMTI_ERROR_NONE) error("拨弄不到啊一个一个方法们：$className；情况：$rc")
 

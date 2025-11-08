@@ -5,18 +5,18 @@ package me.earzuchan.sakiko.api.bridge
 import me.earzuchan.sakiko.api.hook.HookConfig
 import me.earzuchan.sakiko.api.hook.HookHandle
 import me.earzuchan.sakiko.api.hook.SakikoHookPriority
-import me.earzuchan.sakiko.api.utils.HookCheckUtils
+import me.earzuchan.sakiko.api.utils.HookTargetValidateCheckUtils
 import java.lang.reflect.Member
 
 abstract class SakiBridge<TOKEN : Any> {
-    // TIPS：表管理和执行HOOK/UNHOOK都是各平台的事情
+    // TIPS：管理和执行HOOK/UNHOOK都是各平台的事情
 
     fun checkAndHook(man: Member, config: HookConfig, priority: SakikoHookPriority): HookHandle<TOKEN> {
         // CHECK：还要不要非空检测
 
         config.check() // 以防止矛盾的Hook
 
-        HookCheckUtils.check(man)
+        HookTargetValidateCheckUtils.check(man)
 
         return coreHook(man, config, priority)
     }
@@ -36,6 +36,6 @@ abstract class SakiBridge<TOKEN : Any> {
         }
 
         fun requireInstance(): SakiBridge<out Any> =
-            INSTANCE ?: error("No instance for you!!") // 致敬传奇JvmXposed
+            INSTANCE ?: error("不有可用实例")
     }
 }

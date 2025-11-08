@@ -49,9 +49,7 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
         return HookHandle(TokenImpl(unhook))
     }
 
-    override fun coreUnhook(handle: HookHandle<TokenImpl>) {
-        TODO("Not yet implemented")
-    }
+    override fun coreUnhook(handle: HookHandle<TokenImpl>) = handle.token.handle.unhook()
 
     private fun MethodHookParam.wrap(): HookParam = object : HookParam() {
         override val instance: Any? get() = thisObject

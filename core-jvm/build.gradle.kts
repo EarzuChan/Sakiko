@@ -9,7 +9,7 @@ plugins {
 kotlin { jvmToolchain(21) }
 
 dependencies {
-    implementation(project(":api"))
+    api(project(":api"))
     implementation(libs.kotlinxCoroutinesCore)
     implementation(libs.asm)
     implementation(libs.asmUtil)
@@ -27,6 +27,7 @@ tasks.register<ShadowJar>("pack") {
     configurations = listOf(project.configurations.runtimeClasspath.get())
 }
 
+// TODO：转移到模块中
 tasks.register<JavaExec>("runTest") {
     group = "verification"
 

@@ -4,14 +4,13 @@ plugins {
 }
 
 dependencies {
-    // implementation(project(":core-android")) 动态加载Dex
-    // CHECK：要不要引入↓
-    // implementation(libs.classGraph)
+    implementation(project(":core-android")) // 暂不采用动态加载Dex
+    implementation(libs.dexKit)
 }
 
 kotlin { jvmToolchain(21) }
 
-val appId="$group.launcher"
+val appId = "$group.launcher"
 
 android {
     namespace = appId

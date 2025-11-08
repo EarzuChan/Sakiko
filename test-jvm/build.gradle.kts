@@ -1,12 +1,8 @@
-plugins {
-    alias(libs.plugins.kotlinJvm)
-}
+plugins { alias(libs.plugins.kotlinJvm) }
 
 kotlin { jvmToolchain(21) }
 
-dependencies {
-    implementation(project(":test"))
-}
+dependencies { implementation(project(":test")) }
 
 tasks.register<JavaExec>("perform") {
     group = "verification"
@@ -14,7 +10,7 @@ tasks.register<JavaExec>("perform") {
     dependsOn(":core-jvm:pack", ":launcher-jvm:pack", ":test-module:jar")
 
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("me.earzuchan.sakiko.test.TestKt")
+    mainClass.set("TestKt")
 
     doFirst {
         val coreJar = project(":core-jvm").tasks.named<Jar>("pack").get().archiveFile.get().asFile.absolutePath

@@ -60,7 +60,9 @@ dependencies {
     implementation(libs.composeUi.toolingPreview)
     debugImplementation(libs.composeUi.tooling)
 
-    implementation(project(":core-android"))
+    implementation(project(":launcher-android"))
+
     implementation(project(":test"))
-    implementation(project(":test-module"))
+
+    implementation(project(":test-module")) // TODO：应该采用独立DEX加载形式
 }

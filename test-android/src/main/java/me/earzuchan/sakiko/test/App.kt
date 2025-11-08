@@ -2,45 +2,28 @@ package me.earzuchan.sakiko.test
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.Typography
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.highcapable.kavaref.KavaRef.Companion.resolve
-import com.highcapable.kavaref.extension.toClass
-import me.earzuchan.sakiko.api.module.SakikoContext
-import me.earzuchan.sakiko.core.initCore
+import main
+import me.earzuchan.sakiko.launcher.Launcher
+import java.io.File
+
+const val TAG = "Test"
 
 @Composable
 fun AppTheme(
@@ -67,6 +50,8 @@ private var haveBeen = false
 
 private var success by mutableStateOf(false)
 
+private var errText by mutableStateOf("")
+
 private fun once(block: () -> Unit) {
     if (haveBeen) return
 
@@ -75,17 +60,23 @@ private fun once(block: () -> Unit) {
 }
 
 class MainActivity : ComponentActivity() {
-
     override fun onStart() {
         super.onStart()
 
         once {
-            initAndSetupCore()
+            val dexName = "module.dex"
 
-            TestModuleEntry1().onHook()
-            TestModuleEntry2().onHook()
+            val dexPath = File(cacheDir, dexName).apply {
+                writeBytes(assets.open(dexName).readBytes())
+            }.absolutePath.also { Log.i(TAG, "MODULE DEX：$it") }
 
-            runCatching { main() }.onSuccess { success = true }
+            Launcher.findAndLoadFromDexByPath(dexPath)
+
+            runCatching { main() }.onSuccess { success = true }.onFailure {
+                val err = it.stackTraceToString()
+                Log.e(TAG, err)
+                errText = err
+            }
         }
     }
 
@@ -101,21 +92,13 @@ class MainActivity : ComponentActivity() {
                         contentPadding = innerPadding,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        item { Text("Sakiko Android Test\nCheck your Logcat for results") }
+                        item { Text("Sakiko Android Test") }
 
-                        item { Text("Success: $success") }
+                        item { Text("Success: $success\n$errText") }
                     }
                 }
 
             }
         }
-    }
-
-    // CHECK：权宜之计
-    private fun initAndSetupCore() {
-        initCore()
-
-        "me.earzuchan.sakiko.api.module.ModuleKt".toClass().resolve()
-            .firstField { name = "sakiCtxLocal" }.get<ThreadLocal<SakikoContext>>()!!.set(SakikoContext(classLoader))
     }
 }

@@ -26,7 +26,7 @@ android {
 kotlin { jvmToolchain(21) }
 
 dependencies {
-    implementation(project(":api"))
+    api(project(":api")) // 最好不用开洞
     implementation(libs.aliuHook)
 }
 

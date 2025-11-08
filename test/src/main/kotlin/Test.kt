@@ -1,5 +1,3 @@
-package me.earzuchan.sakiko.test
-
 fun main() {
     println("开始测试")
 

@@ -89,7 +89,6 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
 
     override fun coreHook(man: Member, config: HookConfig, priority: SakikoHookPriority): HookHandle<TokenImpl> {
         val TAG = "SBI_CoreHook"
-        // TODO：在下面实现priority
 
         // 获取或分配hookId（首次hook时织入字节码）
         val hookId = processedMethodMap.computeIfAbsent(man) {
@@ -155,7 +154,7 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
     private var relayBlazzName = "me/earzuchan/sakiko/core/SakiBridgeImpl"
 
     fun setRelayBlazzName(relayBlazz: String) {
-        SakiBridgeImpl.relayBlazzName = relayBlazz.replace('.', '/')
+        relayBlazzName = relayBlazz.replace('.', '/')
     }
 
     private fun Member.process(hookId: Long) {
@@ -164,7 +163,6 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
         synchronized(declaringClass) {
             val oldByteCode = ByteCodeStorage.getByClass(declaringClass)
 
-            // 🔑 关键：将hookId织入字节码中
             val newByteCode = oldByteCode.weave(this, hookId, relayBlazzName)
 
             ByteCodeVerifier.verify(newByteCode)
@@ -191,8 +189,8 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
         // 创建参数对象
         val param = HookParamImpl(man, instance, args)
 
-        // 📸 快照：避免迭代时被并发修改 CHECK：欲何为
-        val snapshot = entity.callbacks.toList()
+        // 快照：避免迭代时被并发修改 CHECK：欲何为
+        val snapshot = entity.callbacks.toTypedArray()
 
         // 1. 执行 Before 或 Replace 钩子
         SLog.debug("执行【$man】的${snapshot.size}个钩子", TAG)
@@ -227,28 +225,25 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
             // 修正：只有当钩子成功执行（没有进入catch块）时，才将其添加到新列表中
             executedHandles.add(entry)
 
-            // CHECK：不不，它们说钩子要叠加
-            /*if (param.earlyReturn) {
+            // 如果早退，replace能不能叠加？还是要另案处理
+            if (param.earlyReturn) {
                 SLog.debug("要早早离场，剩下的钩子拜拜喵")
                 break
-            }*/
+            }
         }
 
         // 2. 执行 Original 方法
         if (!param.earlyReturn) {
             SLog.debug("执行原始：$man", TAG)
             runCatching {
-                // 修改：原代码中 originalOne.call() 的异常没有正确处理
-                // InvocationTargetException 需要解包才能获得真正的异常
                 // CHECK：对了，顺便看看callOri，是用原始参数还是即时（可能被改过）的参数
                 try {
                     param.result = param.invokeOriginal(*args)
                 } catch (e: InvocationTargetException) {
-                    // 模仿LSPosed，从InvocationTargetException中获取真正的cause
                     param.throwable = e.cause ?: e
                 }
             }.onFailure {
-                // 捕获其他类型的异常，例如调用.call()本身的错误
+                // 捕获其他类型的异常
                 if (it !is InvocationTargetException) param.throwable = it
             }
         }
@@ -281,7 +276,7 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
 
         SLog.debug("别看我（Hook最终返回值）了，专注战斗：$result", TAG)
 
-        // if (man is Constructor<*>) result = null  这样奏效吗；好像搞不搞都没用
+        // if (man is Constructor<*>) result = null  这样兜底吗；好像搞不搞都null（void）
 
         // CHECK：另外，如果void类型，要不要返回null
 
@@ -305,7 +300,7 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
             return null
         }
 
-        val isStatic = (entity.member.modifiers and Modifier.STATIC) != 0
+        val isStatic = Modifier.isStatic(entity.member.modifiers)
 
         val args = idThisArgs.drop(if (isStatic) 1 else 2).toTypedArray()
 

@@ -46,3 +46,5 @@ bin/
 hs_err_pid*.log
 
 local.properties
+
+.claude/

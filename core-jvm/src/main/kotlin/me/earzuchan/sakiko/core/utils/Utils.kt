@@ -128,9 +128,6 @@ object ByteCodeWeaver {
                     override fun visitCode() {
                         super.visitCode()
 
-                        // val isStaticBC = (access and Opcodes.ACC_STATIC) != 0
-                        // SLog.debug("看看静态：$isStatic，$isStaticBC", TAG)
-
                         generateHookPrologue(
                             mv, HookInfo(
                                 isStatic, hookId, Type.getArgumentTypes(descriptor),
@@ -302,7 +299,7 @@ object ByteCodeVerifier {
     }
 }
 
-object MambaUtils {
+object RefX {
     fun Member.proInvoke(instance: Any?, vararg args: Any?): Any? {
         val TAG = "MemberProInvoke"
 
@@ -317,7 +314,6 @@ object MambaUtils {
             }
 
             is Constructor<*> -> {
-                // FIXME：得走Native
                 val specSign = getSpecSign()
                 SLog.debug("ProInv构造器，特签：$specSign", TAG)
                 SakiNative.proInvoke(this, specSign, declaringClass, false, instance, args)

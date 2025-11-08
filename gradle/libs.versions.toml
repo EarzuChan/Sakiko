@@ -17,6 +17,7 @@ kavaRefCore = "1.0.2"
 kavaRefExt = "1.0.1"
 asm = "9.9"
 classGraph = "4.8.184"
+dexKit = "2.0.7"
 lsplant = "6.4"
 aliuHook = "1.1.4"
 
@@ -29,6 +30,7 @@ kavaRefCore = { module = "com.highcapable.kavaref:kavaref-core", version.ref = "
 kavaRefExt = { module = "com.highcapable.kavaref:kavaref-extension", version.ref = "kavaRefExt" }
 coreKtx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 classGraph = { module = "io.github.classgraph:classgraph", version.ref = "classGraph" }
+dexKit = { module = "org.luckypray:dexkit", version.ref = "dexKit" }
 kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 lifecycleRuntimeKtx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 activityCompose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }

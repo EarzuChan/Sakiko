@@ -1,5 +1,3 @@
-package me.earzuchan.sakiko.test
-
 import com.highcapable.kavaref.KavaRef.Companion.resolve
 import me.earzuchan.sakiko.api.annotations.ExposedSakikoModuleEntry
 import me.earzuchan.sakiko.api.hook.hook
@@ -12,9 +10,9 @@ private const val TAG = "TestModule"
 @ExposedSakikoModuleEntry
 class TestModuleEntry1 : SakikoModuleEntry {
     override fun onHook() = encase {
-        SLog.info("示例模块入口1；Hook StaticMethods", TAG)
+        SLog.info("示例模块入口1：Hook StaticMethods", TAG)
 
-        val clz = "me.earzuchan.sakiko.test.StaticMethods".toClass().resolve()
+        val clz = "StaticMethods".toClass().resolve()
 
         SLog.info("Hook method1", TAG)
         clz.firstMethod {
@@ -31,9 +29,9 @@ class TestModuleEntry1 : SakikoModuleEntry {
 @ExposedSakikoModuleEntry
 class TestModuleEntry2 : SakikoModuleEntry {
     override fun onHook() = encase {
-        SLog.info("示例模块入口2；Hook InstanceMethods 和 Ctor", TAG)
+        SLog.info("示例模块入口2：Hook InstanceMethods 和 Ctor", TAG)
 
-        val clz = "me.earzuchan.sakiko.test.InstanceMethods".toClass().resolve()
+        val clz = "InstanceMethods".toClass().resolve()
 
         SLog.info("Hook method1", TAG)
         clz.firstMethod {
@@ -45,8 +43,17 @@ class TestModuleEntry2 : SakikoModuleEntry {
             name = "method2"
         }.hook { replaceTo("南下") }
 
-        "me.earzuchan.sakiko.test.Ctor".toClass().resolve().firstConstructor().hook {
+        "Ctor".toClass().resolve().firstConstructor().hook {
             before { args[0] = "我的醋" }
         }
+    }
+}
+
+@ExposedSakikoModuleEntry
+class UnitTestsModuleEntry : SakikoModuleEntry {
+    override fun onHook() = encase {
+        SLog.info("模块入口：单元测试", TAG)
+
+        performUnitTests()
     }
 }

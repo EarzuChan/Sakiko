@@ -1,215 +1,10 @@
-package me.earzuchan.sakiko.core
-
 import com.highcapable.kavaref.KavaRef.Companion.resolve
-import me.earzuchan.sakiko.api.hook.HookConfig
 import me.earzuchan.sakiko.api.hook.SakikoHookPriority
 import me.earzuchan.sakiko.api.hook.hook
-import me.earzuchan.sakiko.api.hook.hookMember
 import me.earzuchan.sakiko.api.utils.SLog
-import me.earzuchan.sakiko.core.utils.MambaUtils
-import java.lang.reflect.Modifier
 import kotlin.math.abs
 
-/*
-open class Vater {
-    open fun a() = "Fuck you"
-    open fun b() = "Suck your Dick"
-}
-
-class Sohn : Vater() {
-    override fun a() = "Fuck me"
-    // NOT OVERRIDIN B
-}
-
-class Man {
-    fun whatHeCanSay() = "Mamba out"
-    fun kobe() = 111
-}
-
-fun main() {
-    SakiBridgeImpl.init()
-
-    // testVaterSohn()
-    // testMultiAndPriority()
-    testHookUnhook()
-}
-
-fun testVaterSohn() {
-    Vater::class.resolve().apply {
-        firstMethod { name = "a" }.hook {
-            before {
-                SLog.debug("bef vater a")
-                SLog.debug("result: ${callOriginal()}")
-                SLog.debug("aft callin org vater a")
-            }
-        }
-
-        firstMethod { name = "b" }.hook {
-            before {
-                SLog.debug("bef vater b")
-                SLog.debug("result: ${callOriginal()}")
-                SLog.debug("aft callin org vater b")
-            }
-        }
-    }
-
-    Sohn::class.resolve().apply {
-        // RESULT：仅仅SOHN
-        firstMethod { name = "a" }.hook {
-            before {
-                SLog.debug("bef sohn a")
-                SLog.debug("result: ${callOriginal()}")
-                SLog.debug("aft callin org sohn a")
-            }
-        }
-
-        // RESULT：完全等于Vater的bHook
-        firstMethod {
-            name = "b"
-            superclass() // u kno
-        }.hook {
-            before {
-                SLog.debug("bef sohn b")
-                SLog.debug("result: ${callOriginal()}")
-                SLog.debug("aft callin org sohn b")
-            }
-        }
-    }
-
-    SLog.info("\n\nvater")
-    val vater = Vater()
-    vater.a()
-    vater.b()
-
-    SLog.info("\n\nsohn")
-    val sohn = Sohn()
-    sohn.a()
-    sohn.b()
-
-    // RESULT：跟直接Sohn的触发结果一样，就是实例本身的类型管用
-    SLog.info("\n\njunge")
-    val junge = Sohn() as Vater
-    junge.a()
-    junge.b()
-}
-
-fun testMultiAndPriority() {
-    val manClass = Man::class.resolve()
-
-    val whatHeCanSayMethod = manClass.firstMethod { name = "whatHeCanSay" }
-    val kobeMethod = manClass.firstMethod { name = "kobe" }
-
-    // WCS RESULT：123-321
-
-    whatHeCanSayMethod.hook {
-        before {
-            SLog.debug("bef wc 1")
-        }
-
-        after {
-            SLog.debug("aft wc 1")
-        }
-    }
-
-    whatHeCanSayMethod.hook {
-        before {
-            SLog.debug("bef wc 2")
-        }
-
-        after {
-            SLog.debug("aft wc 2")
-        }
-    }
-
-    whatHeCanSayMethod.hook {
-        before {
-            SLog.debug("bef wc 3")
-        }
-
-        before {
-            SLog.debug("bef wc 3 - dup") // 会覆盖上一个
-        }
-
-        after {
-            SLog.debug("aft wc 3")
-        }
-    }
-
-    // K RESULT：h h2 d l l2-l2 l d h2 h
-
-    kobeMethod.hook(SakikoHookPriority.LOWEST) {
-        before {
-            SLog.debug("bef k l")
-        }
-
-        after {
-            SLog.debug("aft k l")
-        }
-    }
-
-    kobeMethod.hook {
-        before {
-            SLog.debug("bef k d")
-        }
-
-        after {
-            SLog.debug("aft k d")
-        }
-    }
-
-    kobeMethod.hook(SakikoHookPriority.LOWEST) {
-        before {
-            SLog.debug("bef k l2")
-        }
-
-        after {
-            SLog.debug("aft k l2")
-        }
-    }
-
-    kobeMethod.hook(SakikoHookPriority.HIGHEST) {
-        before {
-            SLog.debug("bef k h")
-        }
-
-        after {
-            SLog.debug("aft k h")
-        }
-    }
-
-    kobeMethod.hook(SakikoHookPriority.HIGHEST) {
-        before {
-            SLog.debug("bef k h2")
-        }
-
-        after {
-            SLog.debug("aft k h2")
-        }
-    }
-
-    val man = Man()
-    man.whatHeCanSay()
-    man.kobe()
-}
-
-fun testHookUnhook() {
-    val manClass = Man::class.resolve()
-    val man = Man()
-
-    SLog.debug("ORI：${man.whatHeCanSay()}")
-
-    val whcsHandle = manClass.firstMethod { name = "whatHeCanSay" }.hook {
-        replaceTo($$"NM$L")
-    }
-
-    SLog.debug("HOOKED：${man.whatHeCanSay()}")
-
-    whcsHandle.remove()
-
-    SLog.debug("UNHOOKED：${man.whatHeCanSay()}")
-}*/
-
-private const val TAG = "Test"
+private const val TAG = "UnitTest"
 
 // 自定义断言
 private fun assertEquals(expected: Any?, actual: Any?) {
@@ -306,33 +101,13 @@ class ReturnTypeTests {
     }
 }
 
-private var sForGetClassStaticInitializerFired = false
-
-private class ForGetClassStaticInitializer {
-    companion object {
-        init {
-            sForGetClassStaticInitializerFired = true
-        }
-    }
-}
-
-private var sForHookClassStaticInitializerOriginalFired = 0
-private var sForHookClassStaticInitializerHookedInvoked = 0
-
-private class ForHookClassStaticInitializer {
-    companion object {
-        init {
-            sForHookClassStaticInitializerOriginalFired++
-        }
-    }
-
-    fun empty() {} // NOP
+class MultiAndPriority {
+    fun whatHeCanSay() = "Mamba out"
+    fun kobe() = 111
 }
 
 // 主测试入口
-fun main() {
-    initCore(true)
-
+fun performUnitTests() {
     test(::directMethod)
     test(::virtualMethod)
     test(::staticMethod)
@@ -343,10 +118,9 @@ fun main() {
     test(::multipleHooksOnSameMethod)
     test(::hookAfter)
     test(::multipleMethodsInSameClass)
+    test(::multiAndPriority)
     test(::primitiveArgsPassingTest)
     test(::returnTypeTests)
-    test(::getClassStaticInitializer)
-    test(::hookClassStaticInitializer)
 }
 
 fun test(testFun: () -> Unit) {
@@ -446,6 +220,7 @@ fun exceptionHandling1() {
     assertEquals(3, invokable.invoke(1, 2))
 
     val handle = method.hook { before { throwable = TestException("Test Exception") } }
+    // CHECK：在Yuki，应该是Throwable.throwToApp()
 
     assertThrows(TestException::class.java) {
         runCatching { invokable.invoke(1, 2) }.onFailure { throw it.cause ?: it }
@@ -502,16 +277,18 @@ fun multipleHooksOnSameMethod() {
 
     assertEquals(3, invokable.invoke(1, 2))
 
-    val handle1 = method.hook(SakikoHookPriority.HIGHEST) {
-        before {
+    val handle1 = method.hook(SakikoHookPriority.LOWEST) {
+        after {
+            SLog.debug("应该1")
             val a = args[0] as Int
             val b = args[1] as Int
             result = a + b + 1
         }
     }
 
-    val handle2 = method.hook(SakikoHookPriority.LOWEST) {
-        before {
+    val handle2 = method.hook(SakikoHookPriority.HIGHEST) {
+        after {
+            SLog.debug("应该2")
             val res = result as Int
             result = res * 2
         }
@@ -524,6 +301,110 @@ fun multipleHooksOnSameMethod() {
 
     assertEquals(3, invokable.invoke(1, 2))
 }
+
+// 应该再测试一下犯些禁忌，比如Hook内部类和不允许的类
+
+// TODO：唯一就是安卓上顺序不对
+fun multiAndPriority() {
+    val manClass = MultiAndPriority::class.resolve()
+
+    val whatHeCanSayMethod = manClass.firstMethod { name = "whatHeCanSay" }
+    val kobeMethod = manClass.firstMethod { name = "kobe" }
+
+    // WCS RESULT：123-321
+
+    whatHeCanSayMethod.hook {
+        before {
+            SLog.debug("bef wc 1")
+        }
+
+        after {
+            SLog.debug("aft wc 1")
+        }
+    }
+
+    whatHeCanSayMethod.hook {
+        before {
+            SLog.debug("bef wc 2")
+        }
+
+        after {
+            SLog.debug("aft wc 2")
+        }
+    }
+
+    whatHeCanSayMethod.hook {
+        before {
+            SLog.debug("bef wc 3")
+        }
+
+        before {
+            SLog.debug("bef wc 3 - dup") // 会覆盖上一个
+        }
+
+        after {
+            SLog.debug("aft wc 3")
+        }
+    }
+
+    // K RESULT：h h2 d l l2-l2 l d h2 h
+
+    kobeMethod.hook(SakikoHookPriority.LOWEST) {
+        before {
+            SLog.debug("bef k l")
+        }
+
+        after {
+            SLog.debug("aft k l")
+        }
+    }
+
+    kobeMethod.hook {
+        before {
+            SLog.debug("bef k d")
+        }
+
+        after {
+            SLog.debug("aft k d")
+        }
+    }
+
+    kobeMethod.hook(SakikoHookPriority.LOWEST) {
+        before {
+            SLog.debug("bef k l2")
+        }
+
+        after {
+            SLog.debug("aft k l2")
+        }
+    }
+
+    kobeMethod.hook(SakikoHookPriority.HIGHEST) {
+        before {
+            SLog.debug("bef k h")
+        }
+
+        after {
+            SLog.debug("aft k h")
+        }
+    }
+
+    kobeMethod.hook(SakikoHookPriority.HIGHEST) {
+        before {
+            SLog.debug("bef k h2")
+        }
+
+        after {
+            SLog.debug("aft k h2")
+        }
+    }
+
+    val man = MultiAndPriority()
+    man.whatHeCanSay()
+    man.kobe()
+}
+
+// TODO：Call Ori
 
 fun hookAfter() {
     val method = DirectMethod::class.resolve().firstMethod { name = "add" }
@@ -545,6 +426,7 @@ fun hookAfter() {
     assertEquals(3, invokable.invoke(1, 2))
 }
 
+// FIXME：为啥这里也安卓非预期结果
 fun multipleMethodsInSameClass() {
     val addClass = DirectMethod::class.resolve()
     val addMethod = addClass.firstMethod { name = "add" }
@@ -661,30 +543,4 @@ fun returnTypeTests() {
     voidMethod.invoke()
 }
 
-fun getClassStaticInitializer() {
-    val clInit = MambaUtils.getClInitOrNull(ForGetClassStaticInitializer::class.java)!!
-
-    assertEquals(ForGetClassStaticInitializer::class.java, clInit.declaringClass)
-    assertTrue(Modifier.isStatic(clInit.modifiers))
-    assertFalse(sForGetClassStaticInitializerFired) // 不要不小心把ClInit给调了
-
-    assertNull(SakiNative.getClInitOrNull(IntArray::class.java))
-    assertNull(SakiNative.getClInitOrNull(Long::class.javaPrimitiveType!!))
-}
-
-fun hookClassStaticInitializer() {
-    val clInit = MambaUtils.getClInitOrNull(ForHookClassStaticInitializer::class.java)!!
-
-    hookMember(clInit, HookConfig().apply {
-        before {
-            sForHookClassStaticInitializerHookedInvoked++
-            result = null // force early return
-        }
-    })
-
-    // 用来Call Clinit；Kotlin的`静态`方法不在自身，在伴生对象。所以要奇技淫巧
-    ForHookClassStaticInitializer().empty()
-
-    assertEquals(0, sForHookClassStaticInitializerOriginalFired)
-    assertEquals(1, sForHookClassStaticInitializerHookedInvoked)
-}
+// 因为RefX是Core独享的，故暂无法测试ClInit的Hook了

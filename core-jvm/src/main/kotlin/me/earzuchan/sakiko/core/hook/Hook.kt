@@ -2,7 +2,7 @@ package me.earzuchan.sakiko.core.hook
 
 import me.earzuchan.sakiko.api.hook.HookParam
 import me.earzuchan.sakiko.core.SakiBridgeImpl.shouldInvokeOrigin
-import me.earzuchan.sakiko.core.utils.MambaUtils.proInvoke
+import me.earzuchan.sakiko.core.utils.RefX.proInvoke
 import java.lang.reflect.Member
 
 internal class HookParamImpl(
