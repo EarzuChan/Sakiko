@@ -1,17 +1,20 @@
 package me.earzuchan.sakiko.core
 
-import de.robv.android.xposed.XC_MethodHook
+import android.annotation.SuppressLint
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
+import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.callbacks.XCallback
 import me.earzuchan.sakiko.api.bridge.SakiBridge
 import me.earzuchan.sakiko.api.hook.HookConfig
 import me.earzuchan.sakiko.api.hook.HookHandle
-import me.earzuchan.sakiko.api.hook.HookParam
 import me.earzuchan.sakiko.api.hook.SakikoHookPriority
-import me.earzuchan.sakiko.api.hook.SakikoHookPriority.*
+import me.earzuchan.sakiko.api.utils.SLog
+import me.earzuchan.sakiko.core.hook.HookParamImpl
+import me.earzuchan.sakiko.core.models.CallbackEntry
+import me.earzuchan.sakiko.core.models.HookEntity
 import me.earzuchan.sakiko.core.models.TokenImpl
 import java.lang.reflect.Member
+import java.util.concurrent.ConcurrentHashMap
 
 /* TIPS：暂不启用
 internal object SakiNative {
@@ -25,62 +28,90 @@ fun initCore() = SakiBridgeImpl.init()
 internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
     fun init() = setInstance(this)
 
+    // ==================== 注册表 ====================
+
+    /** Member -> HookEntity 的索引,已处理的方法和它对应的上下文 */
+    private val hookRegistry = ConcurrentHashMap<Member, HookEntity>()
+
+    // ==================== 核心Hook流程 ====================
+
+    @SuppressLint("NewApi") // TODO：说是有api24，大于我们的最低21
     override fun coreHook(man: Member, config: HookConfig, priority: SakikoHookPriority): HookHandle<TokenImpl> {
-        // 如果修不好它的排列问题，就得玩儿套娃了
-        val unhook = XposedBridge.hookMethod(man, object : XC_MethodHook(priority.xp) {
-            private val isReplace = config.replaceLambda != null
+        val TAG = "SBI_CoreHook"
 
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                val myParam = param.wrap()
+        // 获取或创建Hook实体：首次会创建 Xposed hook
+        val entity = hookRegistry.computeIfAbsent(man) { member ->
+            val unhook = XposedBridge.hookMethod(member, object : XC_MethodReplacement() {
+                override fun replaceHookedMethod(param: MethodHookParam): Any? =
+                    handleHookedMethodAndroid(member, param)
+            })
 
-                if (isReplace) {
-                    runCatching {
-                        param.result = config.replaceLambda!!.invoke(myParam)
-                    }.onFailure {
-                        param.throwable = it
-                    }
-                } else if (config.beforeLambda != null) config.beforeLambda!!.invoke(myParam)
-            }
-
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!isReplace) config.afterLambda?.invoke(param.wrap())
-            }
-        })
-
-        return HookHandle(TokenImpl(unhook))
-    }
-
-    override fun coreUnhook(handle: HookHandle<TokenImpl>) = handle.token.handle.unhook()
-
-    private fun MethodHookParam.wrap(): HookParam = object : HookParam() {
-        override val instance: Any? get() = thisObject
-
-        override val member: Member get() = method
-
-        override val args: Array<Any?> get() = this@wrap.args
-
-        override var result: Any?
-            get() = this@wrap.result
-            set(value) {
-                this@wrap.result = value
-            }
-
-        override var throwable: Throwable?
-            get() = this@wrap.throwable
-            set(value) {
-                this@wrap.throwable = value
-            }
-
-        override fun callOriginal(): Any? = XposedBridge.invokeOriginalMethod(method, thisObject, this@wrap.args)
-
-        override fun invokeOriginal(vararg args: Any?): Any? =
-            XposedBridge.invokeOriginalMethod(method, thisObject, args)
-    }
-
-    private val SakikoHookPriority.xp
-        get() = when (this) {
-            HIGHEST -> XCallback.PRIORITY_HIGHEST
-            DEFAULT -> XCallback.PRIORITY_DEFAULT
-            LOWEST -> XCallback.PRIORITY_LOWEST
+            HookEntity(member, unhook)
         }
+
+        // 添加回调
+        synchronized(entity.callbacks) {
+            require(entity.callbacks.none { it.config == config }) {
+                "这个回调已经肘赢过: ${man.name}"
+            }
+
+            val handle = HookHandle(TokenImpl(man, config))
+            val entry = CallbackEntry(config, handle, priority)
+
+            // 找第一个优先级小于当前优先级的位置(ordinal更大)
+            val insertIndex = entity.callbacks.indexOfFirst { it.priority > priority }
+                .takeIf { it >= 0 } ?: entity.callbacks.size
+            entity.callbacks.add(insertIndex, entry)
+
+            SLog.debug("客人到了：$man；Priority：$priority；CCB：${entity.callbacks.size}", TAG)
+
+            return handle
+        }
+    }
+
+    // ==================== 核心Unhook流程 ====================
+
+    override fun coreUnhook(handle: HookHandle<TokenImpl>) {
+        val TAG = "SBI_CoreUnhook"
+
+        val token = handle.token
+        val man = token.member
+
+        val ctx = hookRegistry[man] ?: run {
+            SLog.warn("找不到${man}的上下文", TAG)
+            return
+        }
+
+        synchronized(ctx.callbacks) {
+            // 精确移除指定config的回调
+            if (ctx.callbacks.removeIf { it.config == token.config }) {
+                val remaining = ctx.callbacks.size
+                SLog.debug("成功：${ctx.member}，还有多余资金：$remaining", TAG)
+
+                // 所有回调移除后，清理HookContext
+                if (remaining == 0) {
+                    hookRegistry.remove(man)
+                    ctx.xposedUnhook.unhook()
+                    SLog.debug("${man}：它们（回调）走不了了", TAG)
+                }
+            } else SLog.warn("没找到${man}的该配置项，真奇怪", TAG)
+        }
+    }
+
+    // ==================== 流程控制 ====================
+
+    fun handleHookedMethodAndroid(man: Member, oriParam: MethodHookParam): Any? {
+        val TAG = "SBI_HandleHookedMethodAndroid"
+
+        // 创建参数对象
+        val param = HookParamImpl(man, oriParam.thisObject, oriParam.args)
+
+        val entity = hookRegistry[man] ?: return param.callOriginal().also {
+            SLog.warn("这这不能，怎么会没上下文：$man", TAG)
+        }
+
+        val snapshot = synchronized(entity.callbacks) { entity.callbacks.map { it.config } }
+
+        return handleHookedMethod(man, snapshot, param)
+    }
 }

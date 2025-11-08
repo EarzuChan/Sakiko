@@ -53,21 +53,41 @@ class HookConfig {
     }
 }
 
-abstract class HookParam {
-    abstract val member: Member
+abstract class HookParam(
+    val member: Member,
+    var instance: Any?,
+    val args: Array<Any?>
+) {
+    internal var _result: Any? = null
 
-    abstract val args: Array<Any?>
+    var result: Any?
+        set(value) {
+            _result = value
+            earlyReturn = true
+            _throwable = null // 设置结果时，清除异常 LSP逻辑
+        }
+        get() = _result
 
-    abstract val instance: Any?
+    internal var _throwable: Throwable? = null
 
-    abstract var result: Any?
+    // CHECK：是否实现类如果在BEFORE中设置，应该EARLY RET
+    var throwable: Throwable?
+        set(value) {
+            _result = null
+            earlyReturn = true
+            _throwable = value // 设置结果时，清除异常 LSP逻辑
+        }
+        get() = _throwable
 
-    abstract var throwable: Throwable?
+    internal var earlyReturn = false // 内部标志，用于 early return
 
-    // TIPS：在原版XP中无此方法，纯为Fanke所加
-    abstract fun callOriginal(): Any?
+    /**
+     * 调用原始方法
+     */
+    // CHECK：用原参数还是新参数，如果对象是引用，那只可能是新参？
+    fun callOriginal(): Any? = invokeOriginal(*args)
 
-    abstract fun invokeOriginal(vararg args: Any?): Any?
+    abstract fun invokeOriginal(vararg neoArgs: Any?): Any?
 }
 
 // 暴露的API，扩展方法属于是

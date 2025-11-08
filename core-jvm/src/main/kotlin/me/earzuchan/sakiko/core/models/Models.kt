@@ -12,6 +12,7 @@ data class HookEntity(
     val member: Member,
     val callbacks: CopyOnWriteArrayList<CallbackEntry> = CopyOnWriteArrayList()
 )
+
 data class CallbackEntry(
     val config: HookConfig,
     val handle: HookHandle<TokenImpl>,
