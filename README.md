@@ -4,15 +4,17 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/license/MIT)
 [![Release](https://img.shields.io/github/v/release/earzuchan/sakiko.svg)](https://github.com/earzuchan/sakiko/releases)
 
+[English](README_EN.md) | [Deutsch](README_DE.md)
+
 > **注意**
 >
-> **不太适合**在**正式环境**使用，可能**速度较慢**
+> **不太适合**在**生产环境**使用，可能**速度较慢**或产生**未定义行为**
 >
 > 项目名称源自于 **BanG Dream! It's MyGO!!!!!** 中的角色**丰川祥子**
 >
 > **还在钩，还在钩**（指**Hooking**）
 
-Sakiko是一个为Kotlin开发者而生的多平台Hook框架。它旨在通过一套统一的API（`HookAPI` + `ModuleAPI`），为您提供多平台一致的Hook能力
+**Sakiko**是一个为**Kotlin开发者**而生的**多平台Hook框架**。它旨在通过**一套统一的API**（`HookAPI` + `ModuleAPI`），为您提供**多平台一致的Hook能力**
 
 ## ✨ 特性
 
@@ -59,16 +61,18 @@ https://maven.aliucord.com/releases/
 2.  以`compileOnly`的方式依赖`api`模块：`compileOnly("me.earzuchan.sakiko:api:<version>")`
 3.  实现`SakikoModuleEntry`接口，并使用`@ExposedSakikoModuleEntry`注解标记入口类
 
+您可能需要阅读[本文档](https://highcapable.github.io/KavaRef/)以学习KavaRef API的使用
+
 示例代码如下：
 
 ```kotlin
-package your.module.package
+package your.module
 
 import me.earzuchan.sakiko.api.annotations.ExposedSakikoModuleEntry
 import me.earzuchan.sakiko.api.hook.hook
 import me.earzuchan.sakiko.api.module.SakikoModuleEntry
 import me.earzuchan.sakiko.api.utils.SLog
-import top.canyie.kava.refl.resolve
+import com.highcapable.kavaref.KavaRef.Companion.resolve
 
 @ExposedSakikoModuleEntry
 class TestModuleEntry : SakikoModuleEntry {
@@ -76,7 +80,7 @@ class TestModuleEntry : SakikoModuleEntry {
 
     override fun onHook() = encase {
         // `encase`注入了HookContext
-        // 通过它，可直接访问appClassLoader、String.toClass(cl=appClassLoader)等
+        // 通过它，可访问appClassLoader、String.toClass(cl=appClassLoader)等
         SLog.info("示例模块入口：开始 Hook StaticMethods", TAG)
 
         val targetClass = "your.target.app.StaticMethods".toClass().resolve()
@@ -92,7 +96,7 @@ class TestModuleEntry : SakikoModuleEntry {
             parameters(String::class)
         }.hook {
             before {
-                SLog.info("Before method2: original arg[0] = ${args[0]}", TAG)
+                SLog.info("Before method2：original arg[0] = ${args[0]}", TAG)
                 val thizObj = instance // 获取this对象
                 val a = args[0] as String // 获取参数，以后会提供更方便的API
                 
@@ -100,12 +104,12 @@ class TestModuleEntry : SakikoModuleEntry {
                 
                 // 注意：以下这俩会相互覆盖
                 result = "修改返回值" // 手动设置result会提前返回，跳过原方法执行
-                throwable = xxx // 设置异常，以后这个API会改
+                throwable = Exception() // 设置异常，以后这个API会改
                 
             }
             
             after {
-                SLog.info("After method2: result = $result", TAG)
+                SLog.info("After method2：result = $result", TAG)
             }
         }
     }
@@ -169,13 +173,13 @@ java -noverify -javaagent:"/path/to/launcher-jvm.jar=/path/to/module1.jar;/path/
 
 ## 🙏 致谢
 
-*   **LSPosed**：学习其Hook执行流控制与能力范围
-*   **LSPlant & AliuHook**：作为当前Android侧的底层Hook实现
-*   **JvmXposed**：学习其JVM Native Hook的实现方式
-*   **YukiHookAPI**：本项目的API设计受到了它的启发
-*   **KavaRef**：优秀的Kotlin反射库，已集成在`api`模块中，无需额外引入
-*   **ClassGraph & DexKit**：用于在各平台发现模块入口
-*   **ASM**：强大的JVM字节码操作库
+*   [LSPosed](https://github.com/LSPosed/LSPosed)：学习其Hook执行控制流与能力范围
+*   [LSPlant](https://github.com/LSPosed/LSPlant) & [AliuHook](https://github.com/AliuCord/Hook)：作为当前Android侧的底层Hook实现
+*   [JvmXposed](https://github.com/cinit/JvmXposed)：学习其JVM Hook的实现方式
+*   [YukiHookAPI](https://github.com/HighCapable/YukiHookAPI)：本项目的API设计受到了它的启发
+*   [KavaRef](https://github.com/HighCapable/KavaRef)：优秀的Kotlin反射库，已集成在`api`模块中，无需额外引入
+*   [ClassGraph](https://github.com/ClassGraph/ClassGraph) & [DexKit](https://github.com/LuckyPray/DexKit)：用于在各平台发现模块入口
+*   [ASM](https://gitlab.ow2.org/Asm/Asm)：强大的JVM字节码操作库，用于在JVM向目标类织入Hook序言
 
 ## 📄 许可证
 
