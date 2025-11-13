@@ -1,10 +1,11 @@
 plugins {
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.androidLibrary)
+    `maven-publish`
 }
 
 dependencies {
-    implementation(project(":core-android")) // 暂不采用动态加载Dex
+    implementation(project(":core-android")) // 暂不采用动态加载核心
     implementation(libs.dexKit)
 }
 
@@ -25,5 +26,34 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("launcher-android") {
+                from(components["release"])
+
+                pom {
+                    name.set("Sakiko Launcher for Android")
+                    url.set("https://github.com/EarzuChan/Sakiko")
+
+                    developers {
+                        developer {
+                            name.set("Earzu Chan")
+                            email.set("huascq@gmail.com")
+                        }
+                    }
+
+                    licenses {
+                        license {
+                            name.set("MIT License")
+                            url.set("https://www.opensource.org/licenses/MIT")
+                        }
+                    }
+                }
+            }
+        }
     }
 }

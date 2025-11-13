@@ -35,8 +35,6 @@ class HookConfig {
     }
 
     fun replaceAny(action: HookParam.() -> Any?) {
-        // TIPS：先调用replace再bef/aft怎么办？所以得检查
-
         replaceLambda = action
     }
 
@@ -44,9 +42,7 @@ class HookConfig {
         replaceLambda = action
     }
 
-    fun replaceTo(value: Any?) {
-        replaceAny { value }
-    }
+    fun replaceTo(value: Any?) = replaceAny { value }
 
     fun check() {
         if (replaceLambda != null && (beforeLambda != null || afterLambda != null)) error("不可把替换和执行前/后同时使用")

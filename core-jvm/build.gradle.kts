@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.shadowJar)
     alias(libs.plugins.kotlinJvm)
     `java-library`
+    `maven-publish`
 }
 
 kotlin { jvmToolchain(21) }
@@ -84,5 +85,32 @@ val buildAndCopyNativeLibs by tasks.registering {
 
         // 删除 releaseShared 中间产物
         nativeProject.file("build/bin").deleteRecursively()
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("core-jvm") {
+            artifact(tasks.getByName("packageCore"))
+
+            pom {
+                name.set("Sakiko Core for JVM")
+                url.set("https://github.com/EarzuChan/Sakiko")
+
+                developers {
+                    developer {
+                        name.set("Earzu Chan")
+                        email.set("huascq@gmail.com")
+                    }
+                }
+
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://www.opensource.org/licenses/MIT")
+                    }
+                }
+            }
+        }
     }
 }

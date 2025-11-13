@@ -70,12 +70,12 @@ class MainActivity : ComponentActivity() {
                 writeBytes(assets.open(dexName).readBytes())
             }.absolutePath.also { Log.i(TAG, "MODULE DEX：$it") }
 
-            Launcher.findAndLoadFromDexByPath(dexPath)
+            Launcher.findAndLoadModuleFromDexByPath(dexPath)
 
             runCatching { main() }.onSuccess { success = true }.onFailure {
                 val err = it.stackTraceToString()
                 Log.e(TAG, err)
-                errText = err
+                errText = "\n$err"
             }
         }
     }
@@ -94,10 +94,11 @@ class MainActivity : ComponentActivity() {
                     ) {
                         item { Text("Sakiko Android Test") }
 
-                        item { Text("Success: $success\n$errText") }
+                        item { Text("Success: $success$errText") }
+
+                        item { Text("More info please see in Logcat") }
                     }
                 }
-
             }
         }
     }

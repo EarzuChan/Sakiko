@@ -39,7 +39,7 @@ object Launcher {
     }
 
     // 给一个Dex的路径，弄进cl，然后调用下面的
-    fun findAndLoadFromDexByPath(dexPath: String) = ensureInit {
+    fun findAndLoadModuleFromDexByPath(dexPath: String) = ensureInit {
         val classLoader = runCatching { DexClassLoader(dexPath, null, null, appClassLoader) }.onFailure {
             Log.e(TAG, "创建DEX类加载器时错误：${it.stackTraceToString()}")
         }.getOrThrow()

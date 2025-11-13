@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.androidLibrary)
+    `maven-publish`
 }
 
 val appId = "$group.core"
@@ -83,3 +84,32 @@ dependencies {
         nativeProject.file("build/bin").deleteRecursively()
     }
 }*/
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("core-android") {
+                from(components["release"])
+
+                pom {
+                    name.set("Sakiko Core for Android")
+                    url.set("https://github.com/EarzuChan/Sakiko")
+
+                    developers {
+                        developer {
+                            name.set("Earzu Chan")
+                            email.set("huascq@gmail.com")
+                        }
+                    }
+
+                    licenses {
+                        license {
+                            name.set("MIT License")
+                            url.set("https://www.opensource.org/licenses/MIT")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
