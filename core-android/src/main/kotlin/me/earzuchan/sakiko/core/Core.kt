@@ -1,3 +1,5 @@
+@file:SuppressLint("NewApi") // TODO：说是有api24，大于我们的最低21
+
 package me.earzuchan.sakiko.core
 
 import android.annotation.SuppressLint
@@ -34,8 +36,6 @@ internal object SakiBridgeImpl : SakiBridge<TokenImpl>() {
     private val hookRegistry = ConcurrentHashMap<Member, HookEntity>()
 
     // ==================== 核心Hook流程 ====================
-
-    @SuppressLint("NewApi") // TODO：说是有api24，大于我们的最低21
     override fun coreHook(man: Member, config: HookConfig, priority: SakikoHookPriority): HookHandle<TokenImpl> {
         val TAG = "SBI_CoreHook"
 

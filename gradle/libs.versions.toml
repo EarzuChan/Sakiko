@@ -10,8 +10,7 @@ coreKtx = "1.17.0"
 kotlinxCoroutinesCore = "1.10.2"
 lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
-composeBom = "2025.10.01"
-junit = "6.0.1"
+composeBom = "2025.11.00"
 shadowJar = "8.1.1"
 kavaRefCore = "1.0.2"
 kavaRefExt = "1.0.1"
@@ -23,7 +22,6 @@ aliuHook = "1.1.4"
 
 [libraries]
 kotlinPoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinPoet" }
-junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 asm = { module = "org.ow2.asm:asm", version.ref = "asm" }
 asmUtil = { module = "org.ow2.asm:asm-util", version.ref = "asm" }
 kavaRefCore = { module = "com.highcapable.kavaref:kavaref-core", version.ref = "kavaRefCore" }

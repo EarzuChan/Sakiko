@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.shadowJar)
     alias(libs.plugins.kotlinJvm)
+    `maven-publish`
 }
 dependencies {
     // implementation(project(":core-jvm")) 应该独立加载以减少对应用程序类路径的干扰
@@ -29,5 +30,32 @@ tasks.register<ShadowJar>("packageLauncher") {
     manifest {
         attributes["Premain-Class"] = "me.earzuchan.sakiko.launcher.Launcher"
         attributes["Agent-Class"] = "me.earzuchan.sakiko.launcher.Launcher"
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("launcher-jvm") {
+            artifact(tasks.getByName("packageLauncher"))
+
+            pom {
+                name.set("Sakiko Launcher for JVM")
+                url.set("https://github.com/EarzuChan/Sakiko")
+
+                developers {
+                    developer {
+                        name.set("Earzu Chan")
+                        email.set("huascq@gmail.com")
+                    }
+                }
+
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://www.opensource.org/licenses/MIT")
+                    }
+                }
+            }
+        }
     }
 }

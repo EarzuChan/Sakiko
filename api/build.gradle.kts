@@ -6,6 +6,7 @@ import com.squareup.kotlinpoet.KModifier
 plugins {
     alias(libs.plugins.kotlinJvm)
     `java-library`
+    `maven-publish`
 }
 
 val appId = "${group}.api"
@@ -47,3 +48,30 @@ dependencies {
 }
 
 sourceSets { main { kotlin { srcDirs(generatedCodePath) } } }
+
+publishing {
+    publications {
+        create<MavenPublication>("api") {
+            artifact(tasks.jar)
+
+            pom {
+                name.set("Sakiko API")
+                url.set("https://github.com/EarzuChan/Sakiko")
+
+                developers {
+                    developer {
+                        name.set("Earzu Chan")
+                        email.set("huascq@gmail.com")
+                    }
+                }
+
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://www.opensource.org/licenses/MIT")
+                    }
+                }
+            }
+        }
+    }
+}
