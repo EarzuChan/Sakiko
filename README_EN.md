@@ -1,18 +1,20 @@
 # Sakiko - Next-Generation JVM Hook Solution
 
-[![Maven](https://img.shields.io/badge/Maven-EarzuChan-blue)](https://earzuchan.github.io/maven/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/license/MIT)
-[![Release](https://img.shields.io/github/v/release/earzuchan/sakiko.svg)](https://github.com/earzuchan/sakiko/releases)
+[![Maven](https://img.shields.io/badge/Maven-EarzuChan-blue?style=flat-square)](https://earzuchan.github.io/maven/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](https://opensource.org/license/MIT)
+[![Release](https://img.shields.io/github/v/release/earzuchan/sakiko?style=flat-square)](https://github.com/earzuchan/sakiko/releases)
 
 [中文](README.md) | [Deutsch](README_DE.md)
 
 > **Note**
 >
-> **Not suitable** for use in a **production environment**, potentially **slow** or causing **undefined behavior**
+> **Maybe not suitable** for use in a **production environment**, potentially **slow** or causing **undefined behavior**
 >
 > Project name is inspired by the character **Sakiko Togawa** from **BanG Dream! It's MyGO!!!!!**
 >
 > **Still GOing, still GOing** (A **meme** about MyGO. In **Chinese context**, **go** sounds similar to **hook** (钩), hence **a pun** can be made)
+
+![Sakiko](art/banner.png)
 
 **Sakiko** is **a multi-platform Hook framework** built for **Kotlin developers**. It aims to provide **consistent cross-platform Hook capabilities** through **a unified API** (`HookAPI` + `ModuleAPI`)
 

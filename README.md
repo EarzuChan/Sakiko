@@ -1,8 +1,8 @@
 # Sakiko - 次世代的JVM Hook方案
 
-[![Maven](https://img.shields.io/badge/Maven-EarzuChan-blue)](https://earzuchan.github.io/maven/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/license/MIT)
-[![Release](https://img.shields.io/github/v/release/earzuchan/sakiko.svg)](https://github.com/earzuchan/sakiko/releases)
+[![Maven](https://img.shields.io/badge/Maven-EarzuChan-blue?style=flat-square)](https://earzuchan.github.io/maven/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](https://opensource.org/license/MIT)
+[![Release](https://img.shields.io/github/v/release/earzuchan/sakiko?style=flat-square)](https://github.com/earzuchan/sakiko/releases)
 
 [English](README_EN.md) | [Deutsch](README_DE.md)
 
@@ -13,6 +13,8 @@
 > 项目名称源自于 **BanG Dream! It's MyGO!!!!!** 中的角色**丰川祥子**
 >
 > **还在钩，还在钩**（指**Hooking**）
+
+![Sakiko](art/banner.png)
 
 **Sakiko**是一个为**Kotlin开发者**而生的**多平台Hook框架**。它旨在通过**一套统一的API**（`HookAPI` + `ModuleAPI`），为您提供**多平台一致的Hook能力**
 
