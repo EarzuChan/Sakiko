@@ -44,6 +44,11 @@
     *  `test-*`：既用作测试，也是示例，展示了在对应平台上如何使用Launcher加载Module们
     *  `test-module`：示例模块（含三个Entry，两个对`test`实行Hook，以及一个单元测试）
 
+## 📋 系统要求
+
+- **JVM**：Java 21+
+- **安卓**：API 21（安卓 5.0）+
+
 ## 🚀 快速入门
 
 ### 1. 添加Maven仓库
@@ -146,11 +151,24 @@ Launcher.findAndLoadModuleFromDexByPath("/path/to/your/module.dex") // 注意，
 3.  在启动目标应用程序时，添加以下JVM参数：
 
 ```bash
-# SAKICORE=/path/to/core-jvm.jar
+# Linux/macOS
+export SAKICORE=/path/to/core-jvm.jar
+
+# Windows
+set SAKICORE=C:\path\to\core-jvm.jar
+
 java -noverify -javaagent:"/path/to/launcher-jvm.jar=/path/to/module1.jar;/path/to/module2.jar" -jar /path/to/target-app.jar
 ```
 *   `-noverify`：目前还需要此参数，未来版本将内置验证绕过能力
 *   `-javaagent`：多个模块Jar路径之间请使用`;`分隔
+* 
+## 🔍 常见问题
+
+**Q：模块没被载入**  
+A：确认有给模块入口打`@ExposedSakikoModuleEntry`注解，编译时**保留了注解信息**，且打包的Jar/Dex**有效**和有**正确传递**给加载器
+
+**Q：安卓上Hook不生效**  
+A：确保在目标代码执行前使用`Launcher`载入了模块
 
 ## 🛠️ 开发本项目
 

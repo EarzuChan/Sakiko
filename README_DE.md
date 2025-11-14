@@ -44,6 +44,11 @@
     *  `test-*`: Dient sowohl als Tests als auch als Beispiele und zeigt, wie der Launcher zum Laden von Modulen auf entsprechenden Plattformen verwendet wird
     *  `test-module`: Beispielmodul (enthält drei Einstiegspunkte: zwei zum Hooken von `test` und einen Unit-Test)
 
+## 📋 Systemanforderungen
+
+- **JVM**: Java 21+
+- **Android**: API 21 (Android 5.0)+
+
 ## 🚀 Schnellstart
 
 ### 1. Maven-Repository hinzufügen
@@ -146,11 +151,24 @@ Launcher.findAndLoadModuleFromDexByPath("/path/to/your/module.dex") // Hinweis: 
 3.  Fügen Sie beim Start der Zielanwendung die folgenden JVM-Parameter hinzu:
 
 ```bash
-# SAKICORE=/path/to/core-jvm.jar
+# Linux/macOS
+export SAKICORE=/path/to/core-jvm.jar
+
+# Windows
+set SAKICORE=C:\path\to\core-jvm.jar
+
 java -noverify -javaagent:"/path/to/launcher-jvm.jar=/path/to/module1.jar;/path/to/module2.jar" -jar /path/to/target-app.jar
 ```
 *   `-noverify`: Derzeit noch erforderlich; zukünftige Versionen werden eine integrierte Verifikations-Bypass-Funktion enthalten
 *   `-javaagent`: Trennen Sie mehrere Modul-Jar-Pfade mit `;`
+
+## 🔍 Häufig gestellte Fragen
+
+**F: Modul wurde nicht geladen**
+A: Stellen Sie sicher, dass der Moduleinstiegspunkt mit der Annotation `@ExposedSakikoModuleEntry` versehen ist, die Annotationsinformationen während der Kompilierung **beibehalten wurden**, und dass die gepackte Jar/Dex **gültig** ist und **korrekt** an den Loader übergeben wurde
+
+**F: Hook funktioniert nicht auf Android**
+A: Stellen Sie sicher, dass das Modul mit `Launcher` geladen wurde, bevor der Zielcode ausgeführt wird
 
 ## 🛠️ Dieses Projekt entwickeln
 
