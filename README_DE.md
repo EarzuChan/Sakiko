@@ -48,9 +48,9 @@
 
 Fügen Sie die folgenden Maven-Repository-URLs zu Ihrem Projekt hinzu:
 
-```
-https://earzuchan.github.io/maven/
-https://maven.aliucord.com/releases/
+```kotlin
+maven("https://earzuchan.github.io/Maven/") // Achtung: Das M von Maven muss großgeschrieben werden
+maven("https://maven.aliucord.com/releases/") // Dies ist notwendig, um die von `core-api` abhängige AliuHook zu finden
 ```
 
 Für Bibliotheksversionen siehe bitte die [Release-Seite](https://github.com/Earzuchan/Sakiko/releases)
@@ -122,8 +122,9 @@ Verpacken Sie Ihr Modul als Jar (für JVM) oder Dex (für Android)
 
 #### Auf der Android-Plattform
 
-1.  Fügen Sie `launcher-android` als `implementation`-Abhängigkeit in Ihrem Android-Projekt hinzu: `implementation("me.earzuchan.sakiko:launcher-android:<version>")`
-2.  Rufen Sie `Launcher` auf, um Module zu einem geeigneten Zeitpunkt zu laden (z. B. `Application.onCreate`)
+1.  Fügen Sie in Ihrem Android-Projekt `launcher-android` als `implementation`-Abhängigkeit hinzu: `implementation("me.earzuchan.sakiko:launcher-android:<version>")`
+2.  Sie können den Code des Moduls in eine Dex-Datei kompilieren (mithilfe des `D8`-Tools, das im Android SDK enthalten ist; wie es verwendet wird, können Sie [hier in der Aufgabenkonfiguration](test-module/build.gradle.kts) nachlesen). Alternativ können Sie das Modul auch direkt in Ihr Android-Projekt kompilieren, wir bieten verschiedene Lademethoden an
+3.  Rufen Sie zu einem geeigneten Zeitpunkt (z.B. in `Application.onCreate`) den `Launcher` auf, um das Modul zu laden
 
 ```kotlin
 import me.earzuchan.sakiko.launcher.Launcher

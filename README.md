@@ -48,9 +48,9 @@
 
 请将以下Maven仓库地址添加到您的项目中：
 
-```
-https://earzuchan.github.io/maven/
-https://maven.aliucord.com/releases/
+```kotlin
+maven("https://earzuchan.github.io/Maven/") // 注意：Maven的M要大写
+maven("https://maven.aliucord.com/releases/") // 这是为了能找到`core-api`所依赖的AliuHook
 ```
 
 库的版本请查看[Release页面](https://github.com/Earzuchan/Sakiko/releases)
@@ -123,7 +123,8 @@ class TestModuleEntry : SakikoModuleEntry {
 #### 在Android平台
 
 1.  在您的安卓项目中以`implementation`形式依赖`launcher-android`：`implementation("me.earzuchan.sakiko:launcher-android:<version>")`
-2.  在合适的时机（如`Application.onCreate`）调用`Launcher`加载模块
+2.  您可以将模块的代码编译成Dex文件（通过安卓SDK附带的`D8`工具，具体如何使用可以参考[这里的任务配置](test-module/build.gradle.kts)）。当然您也可以将模块一同编译进您的安卓项目中，我们提供了多种加载方式
+3.  在合适的时机（如`Application.onCreate`）调用`Launcher`加载模块即可
 
 ```kotlin
 import me.earzuchan.sakiko.launcher.Launcher
